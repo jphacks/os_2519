@@ -95,7 +95,7 @@ export default function ContenPage() {
   if (!currentDialogueSet) return<></>
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 p-4">
+    <div className="content-container">
       {/* スワイプ可能な会話カードのコンテナ */}
       <motion.div
         key={currentDialogueSet.id}
@@ -117,24 +117,6 @@ export default function ContenPage() {
           onDialogueCompleted={handleDialogueCompleted} // ★追加: ハンドラーを渡す
         />
       </motion.div>
-
-      {/* ====== ボタン操作 ====== */}
-      <div className="flex gap-6 mt-6">
-        <button
-          onClick={() => handleSwipe("left")}
-          className="px-5 py-2 rounded-full bg-red-100 text-red-600 font-semibold shadow hover:bg-red-200 transition"
-          aria-label="嫌い"
-        >
-          嫌い 👎
-        </button>
-        <button
-          onClick={() => handleSwipe("right")}
-          className="px-5 py-2 rounded-full bg-green-100 text-green-600 font-semibold shadow hover:bg-green-200 transition"
-          aria-label="好き"
-        >
-          好き 👍
-        </button>
-      </div>
 
       {/* ====== 共通フッターナビ (SettingPage と同じ) ====== */}
       <nav className="bottom-nav">
