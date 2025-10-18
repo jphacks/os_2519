@@ -5,10 +5,11 @@ import { useState } from "react";
 import { auth } from "../../firebase";
 import { signOut } from "firebase/auth";
 import { ArrowLeft, Home, TrendingUp, Settings } from "lucide-react";
-import { Slider } from "../../components/ui/slider";
+
 import "./SettingPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
+import TestSlider from "../../components/ui/Testslider";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -43,13 +44,7 @@ export default function SettingsPage() {
           表示される雑学のランダム性を調整できます
         </p>
         <div className="randomness-controls">
-          <Slider
-            value={randomness}
-            onValueChange={setRandomness}
-            max={100}
-            step={1}
-            className="slider-full"
-          />
+          <TestSlider randomness={randomness} setRandomness={setRandomness}/>
           <div className="slider-values">
             <span className="slider-label">低</span>
             <span className="slider-value">{randomness[0]}</span>
