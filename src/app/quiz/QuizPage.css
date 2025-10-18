@@ -73,8 +73,8 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center; 
-  gap: 16px;   
+  align-items: center;
+  gap: 16px;
 }
 
 .correct-text {
@@ -88,7 +88,7 @@
 }
 
 .quiz-next {
-  margin-top: 0px;     
+  margin-top: 0px;
   display: block;
   min-width: 120px;
   padding: 8px 24px;
@@ -113,4 +113,17 @@
   background: #fbbf24;
   border-color: #b45309;
   color: #78350f;
+}
+.explanation-link {
+  display: inline-block;
+  margin-top: 4px;
+  margin-left: 8px;
+  color: #6366f1;
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 1em;
+  transition: color 0.15s;
+}
+.explanation-link:hover {
+  color: #4338ca;
 }
