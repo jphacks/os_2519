@@ -176,7 +176,7 @@ export default function ContentPage() {
             handleSwipe("left");
           }
         }}
-        className="bg-white w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]"
+        //className="bg-white w-full min-w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]"
       >
         <DialogueCard
           dialogueData={currentDialogueSet}
