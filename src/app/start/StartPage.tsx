@@ -70,21 +70,21 @@ export default function HomePage() {
       <div className="home-scroll-content">
         <section className="today-trivia-section">
           <h2 className="section-title">今日の雑学</h2>
-
-          <div className="trivia-card">
-            <div className="trivia-image">
-              <img src="../../../public/パン.png" alt="パン" />
+          <Link to="/content" className="trivia-card-link">
+            <div className="trivia-card">
+              <div className="trivia-image">
+                <img src="../../../public/パン.png" alt="パン" />
+              </div>
+              <div className="trivia-content">
+                <h3 className="trivia-title">パンはなぜ「一斤」で計数するの？</h3>
+                <p className="trivia-description">
+                  パンは、その形と製法から「一斤」で計数される。これは、パンがその形のままでは完全な形をしていないことに起因する。
+                </p>
+                <span className="trivia-tag">雑学</span>
+              </div>
             </div>
-            <div className="trivia-content">
-              <h3 className="trivia-title">パンはなぜ「一斤」で計数するの？</h3>
-              <p className="trivia-description">
-                パンは、その形と製法から「一斤」で計数される。これは、パンがその形のままでは完全な形をしていないことに起因する。
-              </p>
-              <span className="trivia-tag">雑学</span>
-            </div>
-          </div>
+          </Link>
         </section>
-
         <section className="categories-section">
           <h2 className="section-title">カテゴリー</h2>
 
