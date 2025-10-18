@@ -105,7 +105,6 @@ export async function getRecommendedContents(userId: string) {
     const top50 = contents
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, 50)
-    console.log(top50)
 
     return top50
 }

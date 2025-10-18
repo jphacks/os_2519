@@ -50,12 +50,17 @@ export default function HomePage() {
   }
 
   const categories = [
-    { id: "history", name: "歴史", icon: "🏛️", color: "#6b8e4e" },
-    { id: "science", name: "科学", icon: "🔬", color: "#4a7c9e" },
-    { id: "art", name: "芸術", icon: "🎨", color: "#d4b896" },
-    { id: "trivia", name: "雑学", icon: "🏛️", color: "#9ca3af" },
-    { id: "food", name: "食べ物", icon: "🍽️", color: "#8b6f47" },
-    { id: "sports", name: "スポーツ", icon: "⚽", color: "#e89b4a" },
+    { id: "おまかせ", name: "おまかせ", icon: "🎲", color: "#f59e0b" },
+    { id: "歴史", name: "歴史", icon: "🏛️", color: "#6b8e4e" },
+    { id: "自然科学", name: "自然・科学", icon: "🔬", color: "#4a7c9e" },
+    { id: "テクノロジー", name: "テクノロジー", icon: "💻", color: "#d4b896" },
+    { id: "アート・エンタメ", name: "アート・エンタメ", icon: "🎨", color: "#9ca3af" },
+    { id: "スポーツ", name: "スポーツ", icon: "⚽", color: "#e89b4a" },
+    { id: "生活・実用", name: "生活・実用", icon: "🛒", color: "#8b6f47" },
+    { id: "サブカル・心理", name: "サブカル・心理", icon: "🎭", color: "#b37bc1" },
+    { id: "グローバル・地域", name: "グローバル・地域", icon: "🌏", color: "#3fa7d6" },
+    { id: "トレンド・現代社会", name: "トレンド・現代社会", icon: "📈", color: "#f5a623" },
+    { id: "知的・哲学", name: "知的・哲学", icon: "🧠", color: "#6d549f" },
   ]
 
   return (
@@ -91,7 +96,14 @@ export default function HomePage() {
                 <div className="category-icon" style={{ backgroundColor: category.color }}>
                   <span className="category-icon-text">{category.icon}</span>
                 </div>
-                <span className="category-name">{category.name}</span>
+                <span className="category-name">
+                  {category.name.split("・").map((part, i) => (
+                    <span key={i}>
+                      {part}
+                      {i !== category.name.split("・").length - 1 && <br />}
+                    </span>
+                  ))}
+                </span>
               </Link>
             ))}
           </div>

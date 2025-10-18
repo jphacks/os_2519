@@ -205,10 +205,6 @@ export default function ProgressPage() {
           <div className="progress-stats-sub">今日: {formatTime(todayStats.time)}</div>
         </div>
 
-        <div className="progress-stats-card">
-          <div className="progress-stats-label">正解率</div>
-          <div className="progress-stats-value">{stats.accuracy}%</div>
-        </div>
 
         {/* 日次アクティビティ */}
         <div className="progress-chart-card">
