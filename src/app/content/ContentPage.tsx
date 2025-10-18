@@ -1,7 +1,7 @@
 // ContenPage.tsx (リファクタリング後)
 import { useState, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
-import DialogueCard from "../../components/DialogueCard"; // DialogueCardをインポート
+import DialogueCard from "./DialogueCard"; // DialogueCardをインポート
 import { Link } from "react-router-dom";
 import { Home, TrendingUp, Settings } from "lucide-react";
 import "./ContentPage.css";
@@ -106,7 +106,7 @@ const dialogues: DialogueSet[] = [
 
 // ==================== コンポーネント ====================
 
-export default function DialogueSwipe() {
+export default function ContenPage() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const controls = useAnimation();
   const currentDialogueSet = dialogues[currentIndex];
