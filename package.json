@@ -14,12 +14,14 @@
     "@radix-ui/react-label": "^2.1.7",
     "class-variance-authority": "^0.7.1",
     "firebase": "^12.4.0",
+    "framer-motion": "^12.23.24",
     "lucide-react": "^0.546.0",
     "react": "^19.2.0",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.3.0",
+    "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

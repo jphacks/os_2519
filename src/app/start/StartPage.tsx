@@ -88,7 +88,7 @@ export default function HomePage() {
 
           <div className="categories-grid">
             {categories.map((category) => (
-              <Link key={category.id} to={`/category/${category.id}`} className="category-card">
+              <Link key={category.id} to={`/content`} className="category-card">
                 <div className="category-icon" style={{ backgroundColor: category.color }}>
                   <span className="category-icon-text">{category.icon}</span>
                 </div>
