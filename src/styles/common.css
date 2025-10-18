@@ -1,0 +1,47 @@
+/* Bottom Navigation - Shared across pages */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 1.5rem;
+}
+
+.bottom-nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+  color: #6b7280;
+}
+
+.nav-link-active {
+  color: #3b82f6;
+}
+
+.nav-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.nav-label {
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .nav-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}

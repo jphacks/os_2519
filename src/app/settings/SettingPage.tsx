@@ -1,59 +1,88 @@
-"use client"
+"use client";
 
-import { useNavigate, Link } from "react-router-dom"
-import { signOut } from "firebase/auth"
-import { Button } from "../../components/ui/button"
-import { Card } from "../../components/ui/card"
-import { ArrowLeft, Home, TrendingUp, Settings } from "lucide-react"
-import { auth } from "../../firebase"
+import { useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import { auth } from "../../firebase";
+import { signOut } from "firebase/auth";
+import { ArrowLeft, Home, TrendingUp, Settings } from "lucide-react";
+import { Slider } from "../../components/ui/slider";
+import "./SettingPage.css";
+import "../../../src/styles/common.css";
+import "../../../src/styles/components.css";
 
 export default function SettingsPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [randomness, setRandomness] = useState<number[]>([50]);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth)
-      navigate("/login")
+      await signOut(auth);
+      navigate("/login");
     } catch (error) {
-      console.error("Error signing out:", error)
+      console.error("Error signing out:", error);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f0] pb-20">
-      <header className="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-lg font-semibold">設定</h1>
-        <div className="w-10" />
+    <div className="settings-page">
+      <header className="settings-header">
+        <button
+          onClick={() => navigate(-1)}
+          className="button button-ghost button-icon"
+          style={{ backgroundColor: "transparent" }}
+        >
+          <ArrowLeft style={{ width: "1.25rem", height: "1.25rem" }} />
+        </button>
+        <h1 className="settings-header-title">設定</h1>
+        <div style={{ width: "2.5rem" }} />
       </header>
-
-      <div className="px-4 py-6 space-y-4">
-        <Card className="p-6 bg-white">
-          <h2 className="text-lg font-semibold mb-4">アカウント</h2>
-          <Button onClick={handleLogout} variant="destructive" className="w-full">
-            ログアウト
-          </Button>
-        </Card>
+      {/* Randomness Slider Section */}
+      <div className="settings-card randomness-card">
+        <h2 className="settings-title">ホーム画面のランダム性</h2>
+        <p className="settings-description">
+          表示される雑学のランダム性を調整できます
+        </p>
+        <div className="randomness-controls">
+          <Slider
+            value={randomness}
+            onValueChange={setRandomness}
+            max={100}
+            step={1}
+            className="slider-full"
+          />
+          <div className="slider-values">
+            <span className="slider-label">低</span>
+            <span className="slider-value">{randomness[0]}</span>
+            <span className="slider-label">高</span>
+          </div>
+        </div>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3">
-        <div className="flex items-center justify-around">
-          <Link to="/" className="flex flex-col items-center gap-1 text-gray-600">
-            <Home className="h-6 w-6" />
-            <span className="text-xs">ホーム</span>
+      <div className="settings-content">
+        <div className="settings-card">
+          <h2 className="settings-title">アカウント</h2>
+          <button onClick={handleLogout} className="settings-logout-button">
+            ログアウト
+          </button>
+        </div>
+      </div>
+
+      <nav className="bottom-nav">
+        <div className="bottom-nav-content">
+          <Link to="/" className="nav-link">
+            <Home className="nav-icon" />
+            <span className="nav-label">ホーム</span>
           </Link>
-          <Link to="/progress" className="flex flex-col items-center gap-1 text-gray-600">
-            <TrendingUp className="h-6 w-6" />
-            <span className="text-xs">進捗</span>
+          <Link to="/progress" className="nav-link">
+            <TrendingUp className="nav-icon" />
+            <span className="nav-label">進捗</span>
           </Link>
-          <Link to="/settings" className="flex flex-col items-center gap-1 text-blue-500">
-            <Settings className="h-6 w-6" />
-            <span className="text-xs">設定</span>
+          <Link to="/settings" className="nav-link nav-link-active">
+            <Settings className="nav-icon" />
+            <span className="nav-label">設定</span>
           </Link>
         </div>
       </nav>
     </div>
-  )
+  );
 }

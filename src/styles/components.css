@@ -1,0 +1,88 @@
+/* Button Component */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-default {
+  background-color: #18181b;
+  color: white;
+  padding: 0.5rem 1rem;
+}
+
+.button-default:hover:not(:disabled) {
+  background-color: #27272a;
+}
+
+.button-ghost {
+  background-color: transparent;
+  color: #18181b;
+  padding: 0.5rem 1rem;
+}
+
+.button-ghost:hover:not(:disabled) {
+  background-color: #f4f4f5;
+}
+
+.button-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+}
+
+/* Input Component */
+.input {
+  display: flex;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #e4e4e7;
+  background-color: white;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #18181b;
+  box-shadow: 0 0 0 1px #18181b;
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input::placeholder {
+  color: #a1a1aa;
+}
+
+/* Label Component */
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #18181b;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Card Component */
+.card {
+  border-radius: 0.5rem;
+  border: 1px solid #e4e4e7;
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}

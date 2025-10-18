@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { Button } from "../../components/ui/button"
+import { Link, useNavigate } from "react-router-dom"
+import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { Home, TrendingUp, Settings } from "lucide-react"
-import { auth } from "../../firebase"
+import "./StartPage .css"
+import "../../../src/styles/common.css"
 
-export default function StartPage() {
+export default function HomePage() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
@@ -22,32 +24,25 @@ export default function StartPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#e8e3d8]">
-        <div className="text-lg text-gray-600">読み込み中...</div>
+      <div className="page-container">
+        <div style={{ fontSize: "1.125rem", color: "#6b7280" }}>読み込み中...</div>
       </div>
     )
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#e8e3d8] p-4">
-        <div className="w-full max-w-md space-y-6 text-center">
-          <h1 className="text-4xl font-bold text-[#3d3d3d] mb-8">ようこそ</h1>
+      <div className="home-page">
+        <div className="home-content">
+          <h1 className="home-title">ようこそ</h1>
 
-          <div className="space-y-4">
-            <Link to="/login" className="block">
-              <Button className="w-full h-16 bg-[#c89456] hover:bg-[#b8844a] text-white text-xl font-medium rounded-2xl shadow-md transition-colors">
-                ログイン
-              </Button>
+          <div className="home-buttons">
+            <Link to="/login" className="home-button">
+              ログイン
             </Link>
 
-            <Link to="/register" className="block">
-              <Button
-                variant="outline"
-                className="w-full h-16 bg-white hover:bg-gray-50 text-[#3d3d3d] text-xl font-medium rounded-2xl shadow-md border-none transition-colors"
-              >
-                新規登録
-              </Button>
+            <Link to="/register" className="home-button home-button-secondary">
+              新規登録
             </Link>
           </div>
         </div>
@@ -55,32 +50,68 @@ export default function StartPage() {
     )
   }
 
+  const categories = [
+    { id: "history", name: "歴史", icon: "🏛️", color: "#6b8e4e" },
+    { id: "science", name: "科学", icon: "🔬", color: "#4a7c9e" },
+    { id: "art", name: "芸術", icon: "🎨", color: "#d4b896" },
+    { id: "trivia", name: "雑学", icon: "🏛️", color: "#9ca3af" },
+    { id: "food", name: "食べ物", icon: "🍽️", color: "#8b6f47" },
+    { id: "sports", name: "スポーツ", icon: "⚽", color: "#e89b4a" },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#f5f5f0] pb-20">
-      <header className="bg-white border-b border-gray-200 px-4 py-4">
-        <h1 className="text-xl font-bold text-center">学習アプリ</h1>
+    <div className="home-main">
+      <header className="home-header">
+        <h1 className="home-header-title">雑学</h1>
       </header>
 
-      <div className="px-4 py-6 space-y-4">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">学習を始めましょう！</h2>
-          <p className="text-gray-600">進捗ページで学習記録を確認できます</p>
-        </div>
+      <div className="home-scroll-content">
+        <section className="today-trivia-section">
+          <h2 className="section-title">今日の雑学</h2>
+
+          <div className="trivia-card">
+            <div className="trivia-image">
+              <img src="/sliced-bread-on-table.jpg" alt="パン" />
+            </div>
+            <div className="trivia-content">
+              <h3 className="trivia-title">パンはなぜ「一斤」で計数するの？</h3>
+              <p className="trivia-description">
+                パンは、その形と製法から「一斤」で計数される。これは、パンがその形のままでは完全な形をしていないことに起因する。
+              </p>
+              <span className="trivia-tag">雑学</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="categories-section">
+          <h2 className="section-title">カテゴリー</h2>
+
+          <div className="categories-grid">
+            {categories.map((category) => (
+              <Link key={category.id} to={`/content`} className="category-card">
+                <div className="category-icon" style={{ backgroundColor: category.color }}>
+                  <span className="category-icon-text">{category.icon}</span>
+                </div>
+                <span className="category-name">{category.name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3">
-        <div className="flex items-center justify-around">
-          <Link to="/" className="flex flex-col items-center gap-1 text-blue-500">
-            <Home className="h-6 w-6" />
-            <span className="text-xs">ホーム</span>
+      <nav className="bottom-nav">
+        <div className="bottom-nav-content">
+          <Link to="/" className="nav-link nav-link-active">
+            <Home className="nav-icon" />
+            <span className="nav-label">ホーム</span>
           </Link>
-          <Link to="/progress" className="flex flex-col items-center gap-1 text-gray-600">
-            <TrendingUp className="h-6 w-6" />
-            <span className="text-xs">進捗</span>
+          <Link to="/progress" className="nav-link">
+            <TrendingUp className="nav-icon" />
+            <span className="nav-label">進捗</span>
           </Link>
-          <Link to="/settings" className="flex flex-col items-center gap-1 text-gray-600">
-            <Settings className="h-6 w-6" />
-            <span className="text-xs">設定</span>
+          <Link to="/settings" className="nav-link">
+            <Settings className="nav-icon" />
+            <span className="nav-label">設定</span>
           </Link>
         </div>
       </nav>
