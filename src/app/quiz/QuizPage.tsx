@@ -3,6 +3,8 @@ import { getDocs, collection } from "firebase/firestore"
 import { Link } from "react-router-dom";
 import { db } from "../../firebase" // dbはinitialize済みFirestoreインスタンス
 import "./QuizPage.css"
+import { Home, TrendingUp, Settings } from "lucide-react";
+
 
 
 type Quiz = {
@@ -97,7 +99,7 @@ export default function QuizPage() {
             <span className="incorrect-text">
               不正解<br />
               答え: <span>{currentQuiz.correct_answer}</span><br />
-              <Link to={`/content`} className="explanation-link">
+              <Link to={`/content/${currentQuiz.id}`} className="explanation-link">
                 学ぶ
               </Link>
             </span>
@@ -105,6 +107,25 @@ export default function QuizPage() {
           <button className="quiz-next" onClick={handleNext}>Next</button>
         </div>
       )}
+
+      {/* 下ナビ */}
+      <nav className="bottom-nav">
+        <div className="bottom-nav-content">
+          <Link to="/" className="nav-link">
+            <Home className="nav-icon" />
+            <span className="nav-label">ホーム</span>
+          </Link>
+          <Link to="/progress" className="nav-link nav-link-active">
+            <TrendingUp className="nav-icon" />
+            <span className="nav-label">進捗</span>
+          </Link>
+          <Link to="/settings" className="nav-link">
+            <Settings className="nav-icon" />
+            <span className="nav-label">設定</span>
+          </Link>
+        </div>
+      </nav>
+
     </div>
   );
 }

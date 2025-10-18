@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth"
 import { Home, TrendingUp, Settings } from "lucide-react"
 import "./StartPage .css"
 import "../../../src/styles/common.css"
+import "../../../public/パン.png"
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true)
@@ -72,7 +73,7 @@ export default function HomePage() {
 
           <div className="trivia-card">
             <div className="trivia-image">
-              <img src="/sliced-bread-on-table.jpg" alt="パン" />
+              <img src="../../../public/パン.png" alt="パン" />
             </div>
             <div className="trivia-content">
               <h3 className="trivia-title">パンはなぜ「一斤」で計数するの？</h3>

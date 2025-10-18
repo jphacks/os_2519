@@ -41,6 +41,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/category/:id" element={<CategoryPage />} />
       <Route path="/content" element={<ContentPage />} />
+      <Route path="/content/:quizId" element={<ContentPage />} />
       <Route path="/quiz" element={<QuizPage />} />
       <Route path="/progress" element={isAuthenticated ? <ProgressPage /> : <Navigate to="/login" replace />} />
       <Route path="/settings" element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" replace />} />
