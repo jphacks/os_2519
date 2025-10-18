@@ -1,51 +1,95 @@
-// DialogueCard.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 
-export default function DialogueCard({ dialogueData }) {
+// ------------------- スタイル -------------------
+
+const ChatContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100vh;
+  background-color: #fef2f2;
+  padding: 20px;
+  overflow-y: auto;
+`;
+
+const Avatar = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  flex-shrink: 0;
+`;
+
+const MessageBubble = styled.div<{ $isStudent: boolean }>`
+  background-color: ${(props) => (props.$isStudent ? "#f472b6" : "#e0e0e0")};
+  color: ${(props) => (props.$isStudent ? "white" : "black")};
+  border-radius: 15px;
+  padding: 10px 14px;
+  margin: 5px 0;
+  max-width: 70%;
+  align-self: ${(props) => (props.$isStudent ? "flex-end" : "flex-start")};
+  position: relative;
+`;
+
+const MessageRow = styled.div<{ $isStudent: boolean }>`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-direction: ${(props) => (props.$isStudent ? "row-reverse" : "row")};
+`;
+
+// ------------------- データ -------------------
+
+const dialogues = [
+    { speaker: "teacher", line: "こんにちは！今日の授業はフランス革命です。" },
+    { speaker: "student", line: "えっ、革命ですか！？怖いです…" },
+    { speaker: "teacher", line: "安心して、今日は歴史の話だけです。" },
+    { speaker: "student", line: "よかった！でも先生、熱が入りすぎです！" },
+    { speaker: "teacher", line: "それがフランス革命のロマンです！" },
+];
+
+// ------------------- コンポーネント -------------------
+
+// AvatarのURLを取得するヘルパー関数
+const getAvatarUrl = (speaker: string): string => {
+    return speaker === "student"
+        ? "https://i.pravatar.cc/50?img=15"
+        : "https://i.pravatar.cc/50?img=5";
+};
+
+// メッセージを表示するコンポーネント
+const Message: React.FC<{ speaker: string; line: string }> = ({ speaker, line }) => {
+    const isStudent = speaker === "student";
     return (
-        <>
-            <h2 className="text-lg font-semibold text-center mb-3 text-pink-600">
-                {dialogueData.title}
-            </h2>
-
-            {/* ====== スクロールできる会話エリア ====== */}
-            <div className="space-y-4 overflow-y-auto max-h-96 pr-2">
-                {dialogueData.dialogue.map((d, i) => (
-                    <div
-                        key={i}
-                        className={`flex items-end ${d.speaker === "student" ? "justify-end" : "justify-start"
-                            }`}
-                    >
-                        {/* 左側（先生） */}
-                        {d.speaker === "teacher" && (
-                            <div className="flex items-end gap-2">
-                                <img
-                                    src="https://i.pravatar.cc/50?img=5"
-                                    alt="teacher"
-                                    className="w-10 h-10 rounded-full border border-gray-300"
-                                />
-                                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-bl-none px-4 py-2 max-w-[70%] shadow">
-                                    {d.line}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 右側（生徒） */}
-                        {d.speaker === "student" && (
-                            <div className="flex items-end gap-2 flex-row-reverse">
-                                <img
-                                    src="https://i.pravatar.cc/50?img=15"
-                                    alt="student"
-                                    className="w-10 h-10 rounded-full border border-pink-300"
-                                />
-                                <div className="bg-pink-500 text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[70%] shadow">
-                                    {d.line}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-        </>
+        <MessageRow $isStudent={isStudent}>
+            <Avatar src={getAvatarUrl(speaker)} alt={speaker} />
+            <MessageBubble $isStudent={isStudent}>{line}</MessageBubble>
+        </MessageRow>
     );
-}
+};
+
+// チャットアプリ本体
+const ChatApp: React.FC = () => {
+    const [messages, setMessages] = useState(dialogues);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setMessages((prev) => [
+                ...prev,
+                { speaker: "teacher", line: "今日の宿題は『革命とは何か』を書いてきてください！" },
+            ]);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    return (
+        <ChatContainer>
+            {messages.map((msg, index) => (
+                <Message key={index} speaker={msg.speaker} line={msg.line} />
+            ))}
+        </ChatContainer>
+    );
+};
+
+export default ChatApp;
