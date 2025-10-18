@@ -188,31 +188,24 @@ export default function ProgressPage() {
           </div>
         </div>
 
+        {/* 学習履歴部分 */}
         <div className="progress-chart-card">
           <h2 className="progress-chart-title">学習履歴</h2>
           <div className="progress-history-list">
-            {studyHistory.map((item, index) => (
-              <div key={index} className="progress-history-item">
-                <div className="progress-history-content">
-                  <div
-                    className={`progress-history-icon ${item.correct ? "progress-history-icon-correct" : "progress-history-icon-incorrect"}`}
-                  >
-                    {item.correct ? "○" : "×"}
-                  </div>
-                  <div className="progress-history-details">
+            {studyHistory
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // 日付降順に並べ替え
+              .map((item, index) => (
+                <div key={index} className="progress-history-item">
+                  {/* 日付をメインに大きく表示 */}
+                  <div className="progress-history-date">{item.date}</div>
+
+                  {/* サブ情報（質問内容と科目）を小さく表示 */}
+                  <div className="progress-history-content">
                     <div className="progress-history-question">{item.question}</div>
-                    <div className="progress-history-meta">
-                      {item.date} · {item.subject}
-                    </div>
+                    <div className="progress-history-meta">{item.subject}</div>
                   </div>
                 </div>
-                <div
-                  className={`progress-history-result ${item.correct ? "progress-history-result-correct" : "progress-history-result-incorrect"}`}
-                >
-                  {item.correct ? "正解" : "不正解"}
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </div>
