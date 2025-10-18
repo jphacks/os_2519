@@ -51,13 +51,10 @@ export default function ContenPage() {
       setDialogus(dialogue)
     }
     getdialogue()
-    console.log(dialogues)
     
   },[])
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const controls = useAnimation();
-  console.log(dialogues)
-  console.log(currentIndex)
   const currentDialogueSet = dialogues[currentIndex];
 
   const handleSwipe = useCallback(
@@ -85,8 +82,8 @@ export default function ContenPage() {
   // ★追加: DialogueCardから会話完了通知を受け取るハンドラー
   const handleDialogueCompleted = useCallback(
     async(dialogueId: string, rating: number) => {
+      console.log(rating)
       await markDialogueAsRead(uid, dialogueId)//修正する
-      console.log(`Dialogue ${dialogueId} completed with rating: ${rating}`);
       // 評価は後でバックエンドに送信するなどの処理を追加できる
 
       // 次の会話へ自動的に進める
@@ -94,7 +91,7 @@ export default function ContenPage() {
     },
     [handleSwipe] // handleSwipeが変更されたらこの関数も再生成されるように依存配列に追加
   );
-  console.log(currentDialogueSet)
+
   if (!currentDialogueSet) return<></>
 
   return (
