@@ -57,6 +57,8 @@ export default function HomePage() {
     { id: "trivia", name: "雑学", icon: "🏛️", color: "#9ca3af" },
     { id: "food", name: "食べ物", icon: "🍽️", color: "#8b6f47" },
     { id: "sports", name: "スポーツ", icon: "⚽", color: "#e89b4a" },
+    { id: "quiz", name: "クイズ", icon: "❓", color: "#31324cff" },
+
   ]
 
   return (
@@ -86,16 +88,24 @@ export default function HomePage() {
         <section className="categories-section">
           <h2 className="section-title">カテゴリー</h2>
 
-          <div className="categories-grid">
-            {categories.map((category) => (
-              <Link key={category.id} to={`/content`} className="category-card">
-                <div className="category-icon" style={{ backgroundColor: category.color }}>
-                  <span className="category-icon-text">{category.icon}</span>
-                </div>
-                <span className="category-name">{category.name}</span>
-              </Link>
-            ))}
-          </div>
+         <div className="categories-grid">
+  {categories.map((category) => {
+    // triviaカテゴリーだけto="/quiz"、それ以外はto="/content"
+    const toLink = category.id === "quiz" ? "/quiz" : "/content";
+    return (
+      <Link
+        key={category.id}
+        to={toLink}
+        className="category-card"
+      >
+        <div className="category-icon" style={{ backgroundColor: category.color }}>
+          <span className="category-icon-text">{category.icon}</span>
+        </div>
+        <span className="category-name">{category.name}</span>
+      </Link>
+    );
+  })}
+</div>
         </section>
       </div>
 

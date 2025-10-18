@@ -11,6 +11,7 @@ import ProgressPage from "./app/progress/ProgressPage"
 import SettingsPage from "./app/settings/SettingPage"
 import CategoryPage from "./app/category/CategoryPage"
 import ContentPage from "./app/content/ContentPage"
+import QuizPage from "./app/quiz/QuizPage"
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -40,6 +41,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/category/:id" element={<CategoryPage />} />
       <Route path="/content" element={<ContentPage />} />
+      <Route path="/quiz" element={<QuizPage />} />
       <Route path="/progress" element={isAuthenticated ? <ProgressPage /> : <Navigate to="/login" replace />} />
       <Route path="/settings" element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" replace />} />
     </Routes>
