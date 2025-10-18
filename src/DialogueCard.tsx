@@ -34,8 +34,9 @@ const CardContainer = styled.div`
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 80vh;
-  min-width: 250px; /* 最小幅 */
+  height: 100%;
+  min-height: 300px;
+  min-width: 250px;
 `;
 
 const Title = styled.h2`
@@ -99,6 +100,31 @@ const MessageRow = styled.div<MessageRowProps>`
   margin-bottom: 10px;
 `;
 
+const StarsWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+`;
+
+const Star = styled.span<{ active: boolean }>`
+  font-size: 30px;
+  cursor: pointer;
+  color: ${(props) => (props.active ? "#FFD700" : "#D3D3D3")};
+
+  &:hover {
+    color: #ffcc00;
+  }
+`;
+
+const InstructionText = styled.p`
+  font-size: 16px;
+  color: #555;
+  text-align: center;
+  margin-bottom: 10px;
+`;
+
 // ==================== ヘルパー関数 ====================
 
 const getAvatarUrl = (speaker: string): string => {
@@ -122,29 +148,50 @@ const Message: React.FC<DialogueLine> = ({ speaker, line }) => {
 const DialogueCard: React.FC<DialogueCardProps> = ({ dialogueData }) => {
   const { title, dialogue } = dialogueData;
 
-  // メッセージ表示のインデックスを管理
-  const [currentIndex, setCurrentIndex] = useState(1);  // 最初に1をセット
+  const [currentIndex, setCurrentIndex] = useState(1); // 最初に1をセット
+  const [rating, setRating] = useState(0); // ユーザーの評価
 
   useEffect(() => {
     if (currentIndex < dialogue.length) {
-      // 次のメッセージを表示するためのタイマー
       const timer = setTimeout(() => {
-        setCurrentIndex(currentIndex + 1); // 次のメッセージへ
+        setCurrentIndex(currentIndex + 1);
       }, 2000); // 2秒ごとに次のメッセージを表示
-
-      return () => clearTimeout(timer); // コンポーネントがアンマウントされるときにタイマーをクリア
+      return () => clearTimeout(timer);
     }
-  }, [currentIndex, dialogue.length]); // currentIndexが更新されるたびに再実行
+  }, [currentIndex, dialogue.length]);
+
+  // 星をクリックしたときの処理
+  const handleStarClick = (star: number) => {
+    setRating(star); // 選ばれた星の数を状態に保存
+  };
 
   return (
     <CardContainer>
       <Title>{title}</Title>
       <ChatWrapper>
-        {/* 最初の1つのメッセージはすぐに表示 */}
         {dialogue.slice(0, currentIndex).map((msg, index) => (
           <Message key={index} speaker={msg.speaker} line={msg.line} />
         ))}
       </ChatWrapper>
+
+      {/* メッセージがすべて表示された後に表示される */}
+      {currentIndex === dialogue.length && (
+        <StarsWrapper>
+          {/* 「評価して次へ」のメッセージ */}
+          <InstructionText>評価して次へ</InstructionText>
+
+          {/* 星評価 (横並び) */}
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              active={star <= rating}
+              onClick={() => handleStarClick(star)}
+            >
+              ★
+            </Star>
+          ))}
+        </StarsWrapper>
+      )}
     </CardContainer>
   );
 };
