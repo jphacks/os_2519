@@ -1,5 +1,5 @@
 // ContenPage.tsx (リファクタリング後)
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
 import DialogueCard from "./DialogueCard"; // DialogueCardをインポート
 
@@ -45,14 +45,26 @@ const dialogues: DialogueSet[] = [
             { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
             { speaker: "teacher", line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！" },
             { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
+            { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
+            { speaker: "student", line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！" },
+            { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
+            { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
+            { speaker: "teacher", line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！" },
+            { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
         ],
     },
     {
         id: 2,
         title: "次の授業",
         dialogue: [
-            { speaker: "teacher", line: "さて、次は産業革命について学ぼう。" },
-            { speaker: "student", line: "また革命！？もうお腹いっぱいですよ！" },
+            { speaker: "teacher", line: "安心しなさい、今日はただの歴史の授業だよ。" },
+            { speaker: "student", line: "よかったぁ！でも先生、ちょっと熱が入りすぎじゃないですか？" },
+            { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
+            { speaker: "student", line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！" },
+            { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
+            { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
+            { speaker: "teacher", line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！" },
+            { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
         ],
     },
 ];
