@@ -175,7 +175,6 @@ export default function ContenPage() {
         <DialogueCard
           dialogueData={currentDialogueSet}
           onDialogueCompleted={handleDialogueCompleted}
-          isFirstRender={isFirstRender} // 文章表示中かどうかを渡す
         />
       </motion.div>
 
