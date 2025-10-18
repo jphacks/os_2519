@@ -95,30 +95,43 @@ export default function DialogueSwipe() {
             // x, opacity, rotateを初期値に戻すことで、新しいカードがスムーズに現れる
             controls.set({ x: 0, opacity: 1, rotate: 0 });
         },
-        [controls, dialogues.length] // 依存配列にcontrolsとdialogues.lengthを含める
+        [controls, dialogues.length]
+    );
+
+    // ★追加: DialogueCardから会話完了通知を受け取るハンドラー
+    const handleDialogueCompleted = useCallback(
+        (dialogueId: number, rating: number) => {
+            console.log(`Dialogue ${dialogueId} completed with rating: ${rating}`);
+            // 評価は後でバックエンドに送信するなどの処理を追加できる
+
+            // 次の会話へ自動的に進める
+            handleSwipe("right"); // 例えば、評価完了は「好き」と同じ右スワイプの動作と見なす
+        },
+        [handleSwipe] // handleSwipeが変更されたらこの関数も再生成されるように依存配列に追加
     );
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 p-4">
             {/* スワイプ可能な会話カードのコンテナ */}
             <motion.div
-                key={currentDialogueSet.id} // keyを更新することで、会話セットが変わるたびにコンポーネントが再マウントされる
+                key={currentDialogueSet.id}
                 animate={controls}
                 drag="x"
-                dragConstraints={{ left: 0, right: 0 }} // ドラッグしても中央から動かないように制約
+                dragConstraints={{ left: 0, right: 0 }}
                 onDragEnd={(e, info) => {
-                    // ドラッグ終了時の処理：スワイプ閾値を超えたらhandleSwipeを呼び出す
                     if (info.offset.x > SWIPE_THRESHOLD) {
                         handleSwipe("right");
                     } else if (info.offset.x < -SWIPE_THRESHOLD) {
                         handleSwipe("left");
                     }
                 }}
-                // Tailwind CSSでカードの見た目をスタイリング
-                className="bg-white w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]" // 高さを固定し、内部でスクロールできるようにする
+                className="bg-white w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]"
             >
-                {/* DialogueCardコンポーネントに現在の会話データを渡す */}
-                <DialogueCard dialogueData={currentDialogueSet} />
+                {/* DialogueCardコンポーネントに現在の会話データとハンドラーを渡す */}
+                <DialogueCard
+                    dialogueData={currentDialogueSet}
+                    onDialogueCompleted={handleDialogueCompleted} // ★追加: ハンドラーを渡す
+                />
             </motion.div>
 
             {/* ====== ボタン操作 ====== */}
