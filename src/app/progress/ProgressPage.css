@@ -10,13 +10,17 @@
 .progress-header {
   background-color: white;
   border-bottom: 1px solid #e5e7eb;
-  padding: 1rem;
+  /* 固定ヘッダーにするため高さと左右パディングを指定 */
+  height: 3.5rem;
+  padding: 0 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
+  position: fixed;
+  left: 0;
+  right: 0;
   top: 0;
-  z-index: 10;
+  z-index: 30;
 }
 
 .progress-header-title {
@@ -25,7 +29,9 @@
 }
 
 .progress-content {
-  padding: 1.5rem 1rem;
+  /* ヘッダー分の上余白を確保して、コンテンツが隠れないようにする */
+  padding: 1.5rem 1rem 1.5rem 1rem;
+  padding-top: 5rem; /* header height + 1rem余白 */
   max-width: 56rem;
   margin: 0 auto;
 }
@@ -164,7 +170,6 @@
   background-color: #f44336;
   color: white;
 }
-
 
 .progress-history-icon {
   width: 2.5rem;
