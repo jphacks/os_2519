@@ -54,7 +54,7 @@ export async function setInitialUserInfo(userId: string, email:string)
         alreadyRead:[],
         userName:email,
         email:email,
-        prefernce:[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+        preference:[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
         readList:{}
     }, { merge: true });
 }

@@ -1,5 +1,5 @@
 // ContenPage.tsx (リファクタリング後)
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import DialogueCard from "./DialogueCard"; // DialogueCardをインポート
 import { Link } from "react-router-dom";
@@ -8,6 +8,8 @@ import "./ContentPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
 import { markDialogueAsRead } from "../../database/userInfo";
+import { auth } from "../../firebase";
+import { getRecommendedContents } from "../../database/contentsInfo";
 
 // ==================== 型定義 ====================
 
@@ -19,7 +21,7 @@ interface DialogueLine {
 
 // 会話セットの型
 interface DialogueSet {
-  id: number;
+  id: string;
   title: string;
   dialogue: DialogueLine[];
 }
@@ -34,82 +36,28 @@ const SWIPE_ROTATE_DEGREE = 10; // スワイプ時の回転角度 (deg)
 
 // ==================== 会話データ ====================
 
-const dialogues: DialogueSet[] = [
-  {
-    id: 1,
-    title: "フランス革命の授業",
-    dialogue: [
-      {
-        speaker: "student",
-        line: "先生、今日は革命って聞いたけど、まさかバスティーユ牢獄に突撃とかはしませんよね！？怖いんですけど！",
-      },
-      {
-        speaker: "teacher",
-        line: "安心しなさい、今日はただの歴史の授業だよ。",
-      },
-      {
-        speaker: "student",
-        line: "よかったぁ！でも先生、ちょっと熱が入りすぎじゃないですか？",
-      },
-      { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
-      {
-        speaker: "student",
-        line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！",
-      },
-      { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
-      { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
-      {
-        speaker: "teacher",
-        line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！",
-      },
-      { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
-      { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
-      {
-        speaker: "student",
-        line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！",
-      },
-      { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
-      { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
-      {
-        speaker: "teacher",
-        line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！",
-      },
-      { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
-    ],
-  },
-  {
-    id: 2,
-    title: "次の授業",
-    dialogue: [
-      {
-        speaker: "teacher",
-        line: "安心しなさい、今日はただの歴史の授業だよ。",
-      },
-      {
-        speaker: "student",
-        line: "よかったぁ！でも先生、ちょっと熱が入りすぎじゃないですか？",
-      },
-      { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
-      {
-        speaker: "student",
-        line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！",
-      },
-      { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
-      { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
-      {
-        speaker: "teacher",
-        line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！",
-      },
-      { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
-    ],
-  },
-];
+
 
 // ==================== コンポーネント ====================
 
 export default function ContenPage() {
+  const user = auth.currentUser
+  const uid = user?.uid
+  if(!uid) return<></>
+  const [dialogues, setDialogus] = useState<DialogueSet[]>([])
+  useEffect(()=>{
+    const getdialogue = async() => {
+      const dialogue: DialogueSet[] = await getRecommendedContents(uid)
+      setDialogus(dialogue)
+    }
+    getdialogue()
+    console.log(dialogues)
+    
+  },[])
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const controls = useAnimation();
+  console.log(dialogues)
+  console.log(currentIndex)
   const currentDialogueSet = dialogues[currentIndex];
 
   const handleSwipe = useCallback(
@@ -131,13 +79,13 @@ export default function ContenPage() {
       // x, opacity, rotateを初期値に戻すことで、新しいカードがスムーズに現れる
       controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [controls]
+    [controls,dialogues.length]
   );
 
   // ★追加: DialogueCardから会話完了通知を受け取るハンドラー
   const handleDialogueCompleted = useCallback(
-    async(dialogueId: number, rating: number) => {
-      await markDialogueAsRead("bRdsB9Oz4rc6MwF4uhozuVe8tdz1", `lesson${dialogueId}`)//修正する
+    async(dialogueId: string, rating: number) => {
+      await markDialogueAsRead(uid, dialogueId)//修正する
       console.log(`Dialogue ${dialogueId} completed with rating: ${rating}`);
       // 評価は後でバックエンドに送信するなどの処理を追加できる
 
@@ -146,6 +94,8 @@ export default function ContenPage() {
     },
     [handleSwipe] // handleSwipeが変更されたらこの関数も再生成されるように依存配列に追加
   );
+  console.log(currentDialogueSet)
+  if (!currentDialogueSet) return<></>
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 p-4">

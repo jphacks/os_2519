@@ -1,4 +1,4 @@
-// DialogueCard.tsx (リファクタリング後)
+// DialogueCard.tsx
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 
@@ -11,12 +11,11 @@ interface DialogueLine {
 
 interface DialogueCardProps {
   dialogueData: {
-    id: number;
+    id: string;
     title: string;
     dialogue: DialogueLine[];
   };
-  // ★追加: 会話が完了し、評価されたときに呼び出されるコールバック関数
-  onDialogueCompleted: (dialogueId: number, rating: number) => void;
+  onDialogueCompleted: (dialogueId: string, rating: number) => void;
 }
 
 interface MessageBubbleProps {
@@ -108,17 +107,17 @@ const StarsWrapper = styled.div`
   align-items: center;
   gap: 10px;
   margin-top: 20px;
-  flex-wrap: wrap; /* スマホ表示時に折り返す */
+  flex-wrap: wrap;
 `;
 
-const Star = styled.span<{ active: boolean; disabled: boolean }>`
+const Star = styled.span<{ $active: boolean; $disabled: boolean }>`
   font-size: 30px;
-  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")}; /* 無効時はカーソル変更 */
-  color: ${(props) => (props.active ? "#FFD700" : "#D3D3D3")};
-  opacity: ${(props) => (props.disabled ? 0.6 : 1)}; /* 無効時は半透明 */
+  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
+  color: ${(props) => (props.$active ? "#FFD700" : "#D3D3D3")};
+  opacity: ${(props) => (props.$disabled ? 0.6 : 1)};
 
   &:hover {
-    color: ${(props) => (props.disabled ? "#D3D3D3" : "#ffcc00")}; /* 無効時はホバー効果なし */
+    color: ${(props) => (props.$disabled ? "#D3D3D3" : "#ffcc00")};
   }
 `;
 
@@ -133,8 +132,8 @@ const InstructionText = styled.p`
 
 const getAvatarUrl = (speaker: string): string => {
   return speaker === "student"
-    ? "https://i.pravatar.cc/50?img=15" // 生徒のアバター
-    : "https://i.pravatar.cc/50?img=5";  // 先生のアバター
+    ? "https://i.pravatar.cc/50?img=15"
+    : "https://i.pravatar.cc/50?img=5";
 };
 
 // ==================== コンポーネント ====================
@@ -149,34 +148,31 @@ const Message: React.FC<DialogueLine> = ({ speaker, line }) => {
   );
 };
 
-const DialogueCard: React.FC<DialogueCardProps> = ({ dialogueData, onDialogueCompleted }) => {
-  const { id: dialogueId, title, dialogue } = dialogueData; // idも受け取る
+const DialogueCard: React.FC<DialogueCardProps> = ({
+  dialogueData,
+  onDialogueCompleted,
+}) => {
+  const { id: dialogueId, title, dialogue } = dialogueData;
   const [currentIndex, setCurrentIndex] = useState(1);
   const [rating, setRating] = useState(0);
-  const [hasRated, setHasRated] = useState(false); // ★追加: ユーザーが評価を終えたかどうかの状態
+  const [hasRated, setHasRated] = useState(false);
 
   useEffect(() => {
-    // ★変更: すべてのメッセージが表示され、かつまだ評価されていない場合のみタイマーをセット
     if (currentIndex < dialogue.length && !hasRated) {
       const timer = setTimeout(() => {
         setCurrentIndex(currentIndex + 1);
-      }, 2000); // 2秒ごとに次のメッセージを表示
+      }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [currentIndex, dialogue.length, hasRated]); // hasRatedを依存配列に追加
+  }, [currentIndex, dialogue.length, hasRated]);
 
-  // 星をクリックしたときの処理
   const handleStarClick = (star: number) => {
-    if (hasRated) return; // 既に評価済みなら何もしない
-
-    setRating(star); // 選ばれた星の数を状態に保存
-    setHasRated(true); // ★追加: 評価が完了したとマーク
-
-    // ★追加: 親コンポーネントに通知する
-    // 例: 少し遅延させてから通知すると、ユーザーがクリックした視覚的なフィードバックが得られる
+    if (hasRated) return;
+    setRating(star);
+    setHasRated(true);
     setTimeout(() => {
       onDialogueCompleted(dialogueId, star);
-    }, 500); // 0.5秒後に次の会話へ進む
+    }, 500);
   };
 
   return (
@@ -188,17 +184,15 @@ const DialogueCard: React.FC<DialogueCardProps> = ({ dialogueData, onDialogueCom
         ))}
       </ChatWrapper>
 
-      {/* メッセージがすべて表示された後に表示される */}
       {currentIndex === dialogue.length && (
         <StarsWrapper>
           <InstructionText>評価して次へ</InstructionText>
-
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
               key={star}
-              active={star <= rating}
+              $active={star <= rating}
+              $disabled={hasRated}
               onClick={() => handleStarClick(star)}
-              disabled={hasRated} // ★追加: 評価後はクリックできないようにする
             >
               ★
             </Star>
