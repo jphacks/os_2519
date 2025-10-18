@@ -5,12 +5,33 @@ import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { ArrowLeft, Settings, Trophy, Flame, GraduationCap, Target, Home, TrendingUp } from "lucide-react"
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart"
+import {
+  ArrowLeft,
+  Settings,
+  Trophy,
+  Flame,
+  GraduationCap,
+  Target,
+  Home,
+  TrendingUp,
+} from "lucide-react"
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "../../components/ui/chart"
 import "./ProgressPage.css"
 import "../../../src/styles/common.css"
 import "../../../src/styles/components.css"
+import { getUserInfo } from "../../database/userInfo"
 
 interface StudyStats {
   totalQuestions: number
@@ -24,10 +45,8 @@ interface DailyActivity {
 }
 
 interface StudyHistoryItem {
-  question: string
-  subject: string
-  correct: boolean
   date: string
+  questions: string[]
 }
 
 interface BadgeItem {
@@ -45,12 +64,13 @@ export default function ProgressPage() {
     totalTime: 0,
     accuracy: 0,
   })
+  const [todayStats, setTodayStats] = useState({ questions: 0, time: 0 })
   const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([])
   const [studyHistory, setStudyHistory] = useState<StudyHistoryItem[]>([])
-  const [badges] = useState<BadgeItem[]>([
-    { id: "1", name: "初級マスター", icon: <Trophy style={{ width: "2rem", height: "2rem" }} />, earned: true },
-    { id: "2", name: "連続7日学習", icon: <Flame style={{ width: "2rem", height: "2rem" }} />, earned: true },
-    { id: "3", name: "歴史博士", icon: <GraduationCap style={{ width: "2rem", height: "2rem" }} />, earned: true },
+  const [badges, setBadges] = useState<BadgeItem[]>([
+    { id: "1", name: "初級マスター", icon: <Trophy style={{ width: "2rem", height: "2rem" }} />, earned: false },
+    { id: "2", name: "連続7日学習", icon: <Flame style={{ width: "2rem", height: "2rem" }} />, earned: false },
+    { id: "3", name: "歴史博士", icon: <GraduationCap style={{ width: "2rem", height: "2rem" }} />, earned: false },
     { id: "4", name: "100問正解", icon: <Target style={{ width: "2rem", height: "2rem" }} />, earned: false },
   ])
 
@@ -62,36 +82,75 @@ export default function ProgressPage() {
       }
 
       try {
+        const userData = await getUserInfo(user.uid)
+        const readList = (userData?.readList || {}) as Record<string, string[]>
+        const studyTime = (userData?.studyTime || {}) as Record<string, number>
+
+        // === 今日の日付キー ===
+        const today = new Date()
+        const todayKey = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`
+        const todayTimeKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+
+        // === 今日の学習データ ===
+        const todayQuestions = Array.isArray(readList[todayKey]) ? readList[todayKey].length : 0
+        const todayTime = studyTime[todayTimeKey] || 0
+
+        // === 全体の統計 ===
+        const totalQuestions = Object.values(readList).reduce(
+          (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
+          0
+        )
+        const totalTime = Object.values(studyTime).reduce((sum, t) => sum + t, 0)
+
         setStats({
-          totalQuestions: 1234,
-          totalTime: 625,
-          accuracy: 85,
+          totalQuestions,
+          totalTime,
+          accuracy: 80, // 仮定
         })
 
+        setTodayStats({
+          questions: todayQuestions,
+          time: todayTime,
+        })
+
+        // === 直近7日間 ===
         const last7Days = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date()
-          date.setDate(date.getDate() - (6 - i))
+          const d = new Date()
+          d.setDate(today.getDate() - (6 - i))
+          const key = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`
           return {
-            date: `${date.getMonth() + 1}/${date.getDate()}`,
-            questions: Math.floor(Math.random() * 50) + 10,
+            key,
+            date: `${d.getMonth() + 1}/${d.getDate()}`,
           }
         })
-        setDailyActivity(last7Days)
 
-        setStudyHistory([
-          {
-            question: "日本の首都は？",
-            subject: "歴史",
-            correct: true,
-            date: "2023/10/27",
-          },
-          {
-            question: "世界で一番高い山は？",
-            subject: "科学",
-            correct: false,
-            date: "2023/10/27",
-          },
-        ])
+        // === 日次アクティビティ ===
+        const dailyActivityData: DailyActivity[] = last7Days.map(({ key, date }) => ({
+          date,
+          questions: Array.isArray(readList[key]) ? readList[key].length : 0,
+        }))
+        setDailyActivity(dailyActivityData)
+
+        // === 学習履歴 ===
+        const historyData: StudyHistoryItem[] = Object.entries(readList)
+          .map(([dateKey, questions]) => {
+            const formatted = `${dateKey.slice(0, 4)}/${dateKey.slice(4, 6)}/${dateKey.slice(6, 8)}`
+            return { date: formatted, questions }
+          })
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        setStudyHistory(historyData)
+
+        // === バッジ判定 ===
+        const consecutiveDays = last7Days.filter(({ key }) => readList[key])?.length || 0
+        setBadges((prev) =>
+          prev.map((b) => {
+            if (b.id === "1" && totalQuestions > 0) return { ...b, earned: true }
+            if (b.id === "2" && consecutiveDays >= 7) return { ...b, earned: true }
+            if (b.id === "3" && totalQuestions >= 50) return { ...b, earned: true }
+            if (b.id === "4" && totalQuestions >= 100) return { ...b, earned: true }
+            return b
+          })
+        )
 
         setLoading(false)
       } catch (error) {
@@ -103,15 +162,16 @@ export default function ProgressPage() {
     return () => unsubscribe()
   }, [navigate])
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return `${hours}h ${mins}m`
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    return `${hours}h ${mins}m ${secs}s`
   }
 
   if (loading) {
     return (
-      <div className="progress-page" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="progress-page flex items-center justify-center">
         <div style={{ fontSize: "1.125rem", color: "#6b7280" }}>読み込み中...</div>
       </div>
     )
@@ -132,14 +192,17 @@ export default function ProgressPage() {
       </header>
 
       <div className="progress-content">
+        {/* 統計カード */}
         <div className="progress-stats-card">
-          <div className="progress-stats-label">学習した雑学</div>
+          <div className="progress-stats-label">学習した雑学（全体）</div>
           <div className="progress-stats-value">{stats.totalQuestions.toLocaleString()}</div>
+          <div className="progress-stats-sub">今日: {todayStats.questions.toLocaleString()}</div>
         </div>
 
         <div className="progress-stats-card">
-          <div className="progress-stats-label">総学習時間</div>
+          <div className="progress-stats-label">総学習時間（全体）</div>
           <div className="progress-stats-value">{formatTime(stats.totalTime)}</div>
+          <div className="progress-stats-sub">今日: {formatTime(todayStats.time)}</div>
         </div>
 
         <div className="progress-stats-card">
@@ -147,17 +210,15 @@ export default function ProgressPage() {
           <div className="progress-stats-value">{stats.accuracy}%</div>
         </div>
 
+        {/* 日次アクティビティ */}
         <div className="progress-chart-card">
           <h2 className="progress-chart-title">1日の学習活動</h2>
           <div className="progress-chart-container">
             <ChartContainer
               config={{
-                questions: {
-                  label: "問題数",
-                  color: "#3b82f6",
-                },
+                questions: { label: "問題数", color: "#3b82f6" },
               }}
-              style={{ height: "200px", minWidth: "300px" }}
+              style={{ height: "200px", minWidth: "100%" }}
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyActivity}>
@@ -172,13 +233,16 @@ export default function ProgressPage() {
           </div>
         </div>
 
+        {/* バッジ */}
         <div className="progress-chart-card">
           <h2 className="progress-chart-title">獲得したバッジ</h2>
           <div className="progress-badges-grid">
             {badges.map((badge) => (
               <div key={badge.id} className="progress-badge-item">
                 <div
-                  className={`progress-badge-icon ${badge.earned ? "progress-badge-earned" : "progress-badge-locked"}`}
+                  className={`progress-badge-icon ${
+                    badge.earned ? "progress-badge-earned" : "progress-badge-locked"
+                  }`}
                 >
                   {badge.icon}
                 </div>
@@ -188,28 +252,17 @@ export default function ProgressPage() {
           </div>
         </div>
 
+        {/* 学習履歴 */}
         <div className="progress-chart-card">
           <h2 className="progress-chart-title">学習履歴</h2>
           <div className="progress-history-list">
             {studyHistory.map((item, index) => (
               <div key={index} className="progress-history-item">
+                <div className="progress-history-date">{item.date}</div>
                 <div className="progress-history-content">
-                  <div
-                    className={`progress-history-icon ${item.correct ? "progress-history-icon-correct" : "progress-history-icon-incorrect"}`}
-                  >
-                    {item.correct ? "○" : "×"}
-                  </div>
-                  <div className="progress-history-details">
-                    <div className="progress-history-question">{item.question}</div>
-                    <div className="progress-history-meta">
-                      {item.date} · {item.subject}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`progress-history-result ${item.correct ? "progress-history-result-correct" : "progress-history-result-incorrect"}`}
-                >
-                  {item.correct ? "正解" : "不正解"}
+                  {item.questions.map((q, i) => (
+                    <div key={i} className="progress-history-question">・{q}</div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -217,6 +270,7 @@ export default function ProgressPage() {
         </div>
       </div>
 
+      {/* 下ナビ */}
       <nav className="bottom-nav">
         <div className="bottom-nav-content">
           <Link to="/" className="nav-link">

@@ -1,12 +1,15 @@
 // ContenPage.tsx (リファクタリング後)
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
-import DialogueCard from "../../components/DialogueCard"; // DialogueCardをインポート
+import DialogueCard from "./DialogueCard";
 import { Link } from "react-router-dom";
 import { Home, TrendingUp, Settings } from "lucide-react";
-import "./ContentPage.css";
+import "./ContentPage.css"; // CSSファイルをインポート
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
+import { markDialogueAsRead } from "../../database/userInfo";
+import { auth } from "../../firebase";
+import { getRecommendedContents } from "../../database/contentsInfo";
 
 // ==================== 型定義 ====================
 
@@ -18,7 +21,7 @@ interface DialogueLine {
 
 // 会話セットの型
 interface DialogueSet {
-  id: number;
+  id: string;
   title: string;
   dialogue: DialogueLine[];
 }
@@ -30,89 +33,68 @@ const ANIMATION_DURATION = 0.4; // アニメーションの秒数
 const SWIPE_THRESHOLD = 120; // スワイプと判定する最小移動距離 (px)
 const SWIPE_X_OFFSET = 400; // スワイプ時のX軸移動距離 (px)
 const SWIPE_ROTATE_DEGREE = 10; // スワイプ時の回転角度 (deg)
-
-// ==================== 会話データ ====================
-
-const dialogues: DialogueSet[] = [
-  {
-    id: 1,
-    title: "フランス革命の授業",
-    dialogue: [
-      {
-        speaker: "student",
-        line: "先生、今日は革命って聞いたけど、まさかバスティーユ牢獄に突撃とかはしませんよね！？怖いんですけど！",
-      },
-      {
-        speaker: "teacher",
-        line: "安心しなさい、今日はただの歴史の授業だよ。",
-      },
-      {
-        speaker: "student",
-        line: "よかったぁ！でも先生、ちょっと熱が入りすぎじゃないですか？",
-      },
-      { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
-      {
-        speaker: "student",
-        line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！",
-      },
-      { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
-      { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
-      {
-        speaker: "teacher",
-        line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！",
-      },
-      { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
-      { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
-      {
-        speaker: "student",
-        line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！",
-      },
-      { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
-      { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
-      {
-        speaker: "teacher",
-        line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！",
-      },
-      { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
-    ],
-  },
-  {
-    id: 2,
-    title: "次の授業",
-    dialogue: [
-      {
-        speaker: "teacher",
-        line: "安心しなさい、今日はただの歴史の授業だよ。",
-      },
-      {
-        speaker: "student",
-        line: "よかったぁ！でも先生、ちょっと熱が入りすぎじゃないですか？",
-      },
-      { speaker: "teacher", line: "それがフランス革命のロマンというものだ！" },
-      {
-        speaker: "student",
-        line: "ロマンって言われても… guillotine（ギロチン）とか怖いんですけど！",
-      },
-      { speaker: "teacher", line: "歴史は血と情熱でできているんだ！" },
-      { speaker: "student", line: "情熱の方向、ちょっと怖いです先生！" },
-      {
-        speaker: "teacher",
-        line: "よし、じゃあ今日の宿題は『革命とは何か』を400字で書いてくること！",
-      },
-      { speaker: "student", line: "やっぱり先生のほうが怖いです！！" },
-    ],
-  },
-];
+const HINT_AUTOHIDE_DELAY = 5000; // ヒントの自動非表示までの時間 (ms)
 
 // ==================== コンポーネント ====================
 
-export default function DialogueSwipe() {
+export default function ContenPage() {
+  const user = auth.currentUser;
+  const uid = user?.uid;
+  if (!uid) return <></>;
+
+  const [dialogues, setDialogus] = useState<DialogueSet[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const controls = useAnimation();
+  const controls = useAnimation(); // カードのスワイプアニメーションを制御
   const currentDialogueSet = dialogues[currentIndex];
+
+  const [showSwipeHint, setShowSwipeHint] = useState(true); // 初期値をtrueに
+  const [isFirstRender, setIsFirstRender] = useState(true); // 最初の文章を表示中かどうか
+
+  useEffect(() => {
+    // コンテンツデータの取得
+    const getdialogue = async () => {
+      const dialogue: DialogueSet[] = await getRecommendedContents(uid);
+      setDialogus(dialogue);
+    };
+    getdialogue();
+
+    // ヒントの自動非表示タイマーを設定
+    let timer: NodeJS.Timeout;
+    if (showSwipeHint) {
+      timer = setTimeout(() => {
+        setShowSwipeHint(false);
+      }, HINT_AUTOHIDE_DELAY);
+    }
+
+    return () => clearTimeout(timer); // クリーンアップ
+  }, [uid, showSwipeHint]);
+
+  // 最初の文章表示を終わらせるための処理
+  useEffect(() => {
+    if (isFirstRender && currentDialogueSet) {
+      // 最初の会話セットを表示中はスワイプ不可にする
+      const firstDialogue = currentDialogueSet.dialogue[0];
+      console.log("最初の文章:", firstDialogue.line);
+
+      // 少し待ってからスワイプ可能にする
+      const timer = setTimeout(() => {
+        setIsFirstRender(false); // 文章表示後、スワイプ可能にする
+      }, 3000); // 3秒後にスワイプ可能に
+
+      return () => clearTimeout(timer); // クリーンアップ
+    }
+  }, [isFirstRender, currentDialogueSet]);
 
   const handleSwipe = useCallback(
     async (direction: "left" | "right") => {
+      // スワイプヒントが表示中であれば非表示にする
+      if (showSwipeHint) {
+        setShowSwipeHint(false);
+        // 揺れアニメーションを停止し、スワイプアニメーションへ引き継ぐ
+        controls.stop();
+        controls.set({ x: 0, opacity: 1, rotate: 0 }); // スワイプアニメーションの開始状態をリセット
+      }
+
       const isRight = direction === "right";
 
       // 現在のカードをアニメーションで画面外へ移動させる
@@ -124,33 +106,61 @@ export default function DialogueSwipe() {
       });
 
       // 次の会話セットのインデックスを計算（ループ）
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % dialogues.length);
+      setCurrentIndex((prevIndex) =>
+        dialogues.length > 0 ? (prevIndex + 1) % dialogues.length : 0
+      );
 
       // 新しいカードのためにアニメーションの状態をリセット
-      // x, opacity, rotateを初期値に戻すことで、新しいカードがスムーズに現れる
       controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [controls]
+    [controls, dialogues.length, showSwipeHint] // showSwipeHint を依存配列に追加
   );
 
-  // ★追加: DialogueCardから会話完了通知を受け取るハンドラー
   const handleDialogueCompleted = useCallback(
-    (dialogueId: number, rating: number) => {
-      console.log(`Dialogue ${dialogueId} completed with rating: ${rating}`);
-      // 評価は後でバックエンドに送信するなどの処理を追加できる
-
-      // 次の会話へ自動的に進める
-      handleSwipe("right"); // 例えば、評価完了は「好き」と同じ右スワイプの動作と見なす
+    async (dialogueId: string, rating: number) => {
+      console.log(rating);
+      await markDialogueAsRead(uid, dialogueId);
+      handleSwipe("right");
     },
-    [handleSwipe] // handleSwipeが変更されたらこの関数も再生成されるように依存配列に追加
+    [handleSwipe, uid]
   );
+
+  if (!currentDialogueSet) return <></>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-pink-50 p-4">
+    <div className="content-container">
+      {/* スワイプヒントのオーバーレイ */}
+      {showSwipeHint && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="swipe-hint-overlay"
+          onClick={() => {
+            // ヒントをクリックで非表示に
+            setShowSwipeHint(false);
+            // 揺れアニメーションを停止し、元の位置に戻す
+            controls.stop();
+            controls.set({ x: 0, opacity: 1, rotate: 0 });
+          }}
+        >
+          <div className="swipe-hint-content">
+            <span role="img" aria-label="left arrow">
+              👈
+            </span>{" "}
+            左右にスワイプしてスキップ{" "}
+            <span role="img" aria-label="right arrow">
+              👉
+            </span>
+          </div>
+        </motion.div>
+      )}
+
       {/* スワイプ可能な会話カードのコンテナ */}
       <motion.div
         key={currentDialogueSet.id}
-        animate={controls}
+        animate={controls} // ここで `controls` をアニメーションに指定
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={(_, info) => {
@@ -162,30 +172,11 @@ export default function DialogueSwipe() {
         }}
         className="bg-white w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]"
       >
-        {/* DialogueCardコンポーネントに現在の会話データとハンドラーを渡す */}
         <DialogueCard
           dialogueData={currentDialogueSet}
-          onDialogueCompleted={handleDialogueCompleted} // ★追加: ハンドラーを渡す
+          onDialogueCompleted={handleDialogueCompleted}
         />
       </motion.div>
-
-      {/* ====== ボタン操作 ====== */}
-      <div className="flex gap-6 mt-6">
-        <button
-          onClick={() => handleSwipe("left")}
-          className="px-5 py-2 rounded-full bg-red-100 text-red-600 font-semibold shadow hover:bg-red-200 transition"
-          aria-label="嫌い"
-        >
-          嫌い 👎
-        </button>
-        <button
-          onClick={() => handleSwipe("right")}
-          className="px-5 py-2 rounded-full bg-green-100 text-green-600 font-semibold shadow hover:bg-green-200 transition"
-          aria-label="好き"
-        >
-          好き 👍
-        </button>
-      </div>
 
       {/* ====== 共通フッターナビ (SettingPage と同じ) ====== */}
       <nav className="bottom-nav">

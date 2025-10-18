@@ -1,3 +1,13 @@
+.content-container {
+  display: flex;                 /* flexレイアウト */
+  flex-direction: column;        /* 縦方向に並べる */
+  align-items: center;           /* 水平方向の中央揃え */
+  justify-content: center;       /* 垂直方向の中央揃え */
+  padding: 0;                 /* p-4 = 1rem (16px相当) */
+  padding-bottom: 60px !important;          /* 追加: 下の余白を拡張したい場合 */
+  height: auto;                  /* 高さを指定したい場合はここで調整 */
+}
+
 .dialogue-swipe-page {
   display: flex;
   flex-direction: column;
@@ -6,6 +16,7 @@
   min-height: 100vh;
   background-color: #fce7f3;
   padding: 20px;
+  padding-bottom: 40px;
   position: relative;
 }
 

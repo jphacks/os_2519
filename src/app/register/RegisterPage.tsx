@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "../../firebase"
 import "./RegisterPage.css"
+import { setInitialUserInfo } from "../../database/userInfo"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -36,7 +37,11 @@ export default function RegisterPage() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const uid = user.uid
+      await setInitialUserInfo(uid, email)
+
       navigate("/")
     } catch (err: any) {
       console.error("Registration error:", err)

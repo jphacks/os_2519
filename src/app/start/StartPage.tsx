@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { Home, TrendingUp, Settings } from "lucide-react"
@@ -9,7 +9,6 @@ import "./StartPage .css"
 import "../../../src/styles/common.css"
 
 export default function HomePage() {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
