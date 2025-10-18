@@ -37,23 +37,23 @@ export default function SettingsPage() {
         <h1 className="settings-header-title">設定</h1>
         <div style={{ width: "2.5rem" }} />
       </header>
-      {/* Randomness Slider Section */}
-      <div className="settings-card randomness-card">
-        <h2 className="settings-title">ホーム画面のランダム性</h2>
-        <p className="settings-description">
-          表示される雑学のランダム性を調整できます
-        </p>
-        <div className="randomness-controls">
-          <TestSlider randomness={randomness} setRandomness={setRandomness}/>
-          <div className="slider-values">
-            <span className="slider-label">低</span>
-            <span className="slider-value">{randomness[0]}</span>
-            <span className="slider-label">高</span>
+      <div className="settings-content">
+        {/* Randomness Slider Section moved inside settings-content so it uses the same gap */}
+        <div className="settings-card randomness-card">
+          <h2 className="settings-title">ホーム画面のランダム性</h2>
+          <p className="settings-description">
+            表示される雑学のランダム性を調整できます
+          </p>
+          <div className="randomness-controls">
+            <TestSlider randomness={randomness} setRandomness={setRandomness} />
+            <div className="slider-values">
+              <span className="slider-label">低</span>
+              <span className="slider-value">{randomness[0]}</span>
+              <span className="slider-label">高</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="settings-content">
         <div className="settings-card">
           <h2 className="settings-title">アカウント</h2>
           <button onClick={handleLogout} className="settings-logout-button">
