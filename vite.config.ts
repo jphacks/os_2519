@@ -5,6 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,  // これでlocalhostい以外にもアクセス可能になる
+    host: true,  // これでlocalhost以外にもアクセス可能になる
   },
 })
