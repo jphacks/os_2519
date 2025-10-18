@@ -63,6 +63,20 @@ export default function HomePage() {
     { id: "知的・哲学", name: "知的・哲学", icon: "🧠", color: "#6d549f" },
   ]
 
+  const categoryIndexMap: Record<string, number> = {
+    "おまかせ": -1, // -1 なら従来の user_preference を使う
+    "歴史": 0,
+    "自然科学": 1,
+    "テクノロジー": 2,
+    "アート・エンタメ": 3,
+    "スポーツ": 4,
+    "生活・実用": 5,
+    "サブカル・心理": 6,
+    "グローバル・地域": 7,
+    "トレンド・現代社会": 8,
+    "知的・哲学": 9,
+  }
+
   return (
     <div className="home-main">
       <header className="home-header">
@@ -91,21 +105,31 @@ export default function HomePage() {
           <h2 className="section-title">カテゴリー</h2>
 
           <div className="categories-grid">
-            {categories.map((category) => (
-              <Link key={category.id} to={`/content`} className="category-card">
-                <div className="category-icon" style={{ backgroundColor: category.color }}>
-                  <span className="category-icon-text">{category.icon}</span>
-                </div>
-                <span className="category-name">
-                  {category.name.split("・").map((part, i) => (
-                    <span key={i}>
-                      {part}
-                      {i !== category.name.split("・").length - 1 && <br />}
-                    </span>
-                  ))}
-                </span>
-              </Link>
-            ))}
+            {categories.map((category) => {
+              const n = categoryIndexMap[category.id] ?? -1
+              return (
+                <Link
+                  key={category.id}
+                  to={`/content?category=${n}`}
+                  className="category-card"
+                >
+                  <div
+                    className="category-icon"
+                    style={{ backgroundColor: category.color }}
+                  >
+                    <span className="category-icon-text">{category.icon}</span>
+                  </div>
+                  <span className="category-name">
+                    {category.name.split("・").map((part, i) => (
+                      <span key={i}>
+                        {part}
+                        {i !== category.name.split("・").length - 1 && <br />}
+                      </span>
+                    ))}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </section>
       </div>

@@ -2,12 +2,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, useAnimation } from "framer-motion";
 import DialogueCard from "./DialogueCard";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Home, TrendingUp, Settings } from "lucide-react";
 import "./ContentPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
-import { addDailyStudyTime, markDialogueAsRead } from "../../database/userInfo";
+import { addDailyStudyTime, createOrupdateUserInfo, getUserPreference, markDialogueAsRead, updatePreferenceVector } from "../../database/userInfo";
 import { auth } from "../../firebase";
 import { getRecommendedContents } from "../../database/contentsInfo";
 
@@ -22,6 +22,7 @@ interface DialogueSet {
   id: string;
   title: string;
   dialogue: DialogueLine[];
+  field:number[]
 }
 
 // ==================== 定数定義 ====================
@@ -47,7 +48,9 @@ export default function ContentPage() {
 
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const [isFirstRender, setIsFirstRender] = useState(true);
-
+  const [searchParams] = useSearchParams();
+  const categoryIndexStr = searchParams.get("category"); 
+  const n = categoryIndexStr ? parseInt(categoryIndexStr, 10) : -1; 
   // ★ 滞在時間の測定用
   const startTimeRef = useRef<number>(Date.now());
 
@@ -63,7 +66,7 @@ export default function ContentPage() {
   // 会話コンテンツの取得と初期処理
   useEffect(() => {
     const getdialogue = async () => {
-      const dialogue: DialogueSet[] = await getRecommendedContents(uid);
+      const dialogue: DialogueSet[] = await getRecommendedContents(uid,n);
       setDialogus(dialogue);
       startTimeRef.current = Date.now(); // 初回のカード表示時間記録
     };
@@ -122,16 +125,27 @@ export default function ContentPage() {
 
   // 会話が完了したときの処理
   const handleDialogueCompleted = useCallback(
-    async (dialogueId: string, rating: number) => {
+    async (dialogueId: string, rating: number | "skip") => {
       await markDialogueAsRead(uid, dialogueId);
-
-      // ★ 評価後にも学習時間を記録
+  
+      // 学習時間を記録
       await recordStudyTime();
-
+  
+      // n=-1 の場合のみ嗜好更新
+      if (n === -1) {
+        // 例: 現在のPを取得（Firebaseから取得する想定）
+        const P_old = await getUserPreference(uid); // [0.1, 0.1, ..., 0.1]
+        const V = currentDialogueSet.field; // コンテンツのOne-Hotベクトル
+        const P_new = updatePreferenceVector(P_old, V, rating);
+        const data = { prefernce: P_new };
+        await createOrupdateUserInfo(uid, data);
+      }
+  
       handleSwipe("right");
     },
-    [handleSwipe, uid, recordStudyTime]
+    [handleSwipe, uid, recordStudyTime, n]
   );
+  
 
   if (!currentDialogueSet) return <></>;
 
