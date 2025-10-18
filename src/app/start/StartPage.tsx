@@ -8,7 +8,7 @@ import { Home, TrendingUp, Settings } from "lucide-react"
 import "./StartPage .css"
 import "../../../src/styles/common.css"
 
-export default function StartPage() {
+export default function HomePage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)

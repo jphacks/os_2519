@@ -9,7 +9,7 @@ import LoginPage from "./app/login/LoginPage"
 import RegisterPage from "./app/register/RegisterPage"
 import ProgressPage from "./app/progress/ProgressPage"
 import SettingsPage from "./app/settings/SettingPage"
-import HomePage from "./app/category/CategoryPage"
+import CategoryPage from "./app/category/CategoryPage"
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -26,8 +26,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#e8e3d8]">
-        <div className="text-lg text-gray-600">読み込み中...</div>
+      <div className="page-container">
+        <div style={{ fontSize: "1.125rem", color: "#6b7280" }}>読み込み中...</div>
       </div>
     )
   }
@@ -37,10 +37,9 @@ function App() {
       <Route path="/" element={<StartPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/category/:id" element={<CategoryPage />} />
       <Route path="/progress" element={isAuthenticated ? <ProgressPage /> : <Navigate to="/login" replace />} />
       <Route path="/settings" element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" replace />} />
-      <Route path="/home" element={<HomePage />} />
-
     </Routes>
   )
 }
