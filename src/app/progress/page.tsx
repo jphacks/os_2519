@@ -1,0 +1,35 @@
+import Link from "next/link"
+import { Home, TrendingUp, Settings } from "lucide-react"
+
+export default function ProgressPage() {
+  return (
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-orange-50 to-white">
+      <header className="py-6 text-center">
+        <h1 className="text-2xl font-bold text-foreground">進捗</h1>
+      </header>
+
+      <main className="flex-1 px-4 pb-24">
+        <div className="flex h-full items-center justify-center">
+          <p className="text-muted-foreground">進捗ページ（準備中）</p>
+        </div>
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background">
+        <div className="flex items-center justify-around py-3">
+          <Link href="/" className="flex flex-col items-center gap-1 text-muted-foreground">
+            <Home className="h-6 w-6" />
+            <span className="text-xs">ホーム</span>
+          </Link>
+          <Link href="/progress" className="flex flex-col items-center gap-1 text-foreground">
+            <TrendingUp className="h-6 w-6" />
+            <span className="text-xs">進捗</span>
+          </Link>
+          <Link href="/settings" className="flex flex-col items-center gap-1 text-muted-foreground">
+            <Settings className="h-6 w-6" />
+            <span className="text-xs">設定</span>
+          </Link>
+        </div>
+      </nav>
+    </div>
+  )
+}
