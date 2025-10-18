@@ -1,25 +1,23 @@
-// ContenPage.tsx (リファクタリング後)
-import { useState, useEffect, useCallback } from "react";
+// ContentPage.tsx
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, useAnimation } from "framer-motion";
 import DialogueCard from "./DialogueCard";
 import { Link } from "react-router-dom";
 import { Home, TrendingUp, Settings } from "lucide-react";
-import "./ContentPage.css"; // CSSファイルをインポート
+import "./ContentPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
-import { markDialogueAsRead } from "../../database/userInfo";
+import { addDailyStudyTime, markDialogueAsRead } from "../../database/userInfo";
 import { auth } from "../../firebase";
 import { getRecommendedContents } from "../../database/contentsInfo";
 
 // ==================== 型定義 ====================
 
-// 個々の会話の行の型（DialogueCard.tsxと共通）
 interface DialogueLine {
   speaker: "student" | "teacher";
   line: string;
 }
 
-// 会話セットの型
 interface DialogueSet {
   id: string;
   title: string;
@@ -37,28 +35,41 @@ const HINT_AUTOHIDE_DELAY = 5000; // ヒントの自動非表示までの時間 
 
 // ==================== コンポーネント ====================
 
-export default function ContenPage() {
+export default function ContentPage() {
   const user = auth.currentUser;
   const uid = user?.uid;
   if (!uid) return <></>;
 
   const [dialogues, setDialogus] = useState<DialogueSet[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const controls = useAnimation(); // カードのスワイプアニメーションを制御
+  const controls = useAnimation();
   const currentDialogueSet = dialogues[currentIndex];
 
-  const [showSwipeHint, setShowSwipeHint] = useState(true); // 初期値をtrueに
-  const [isFirstRender, setIsFirstRender] = useState(true); // 最初の文章を表示中かどうか
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+  const [isFirstRender, setIsFirstRender] = useState(true);
 
+  // ★ 滞在時間の測定用
+  const startTimeRef = useRef<number>(Date.now());
+
+  // 学習時間を記録
+  const recordStudyTime = useCallback(async () => {
+    const endTime = Date.now();
+    const elapsedSec = Math.round((endTime - startTimeRef.current) / 1000);
+    startTimeRef.current = endTime;
+
+    await addDailyStudyTime(uid, elapsedSec);
+  }, [uid]);
+
+  // 会話コンテンツの取得と初期処理
   useEffect(() => {
-    // コンテンツデータの取得
     const getdialogue = async () => {
       const dialogue: DialogueSet[] = await getRecommendedContents(uid);
       setDialogus(dialogue);
+      startTimeRef.current = Date.now(); // 初回のカード表示時間記録
     };
     getdialogue();
 
-    // ヒントの自動非表示タイマーを設定
+    // スワイプヒントの非表示タイマー
     let timer: NodeJS.Timeout;
     if (showSwipeHint) {
       timer = setTimeout(() => {
@@ -66,38 +77,33 @@ export default function ContenPage() {
       }, HINT_AUTOHIDE_DELAY);
     }
 
-    return () => clearTimeout(timer); // クリーンアップ
+    return () => clearTimeout(timer);
   }, [uid, showSwipeHint]);
 
-  // 最初の文章表示を終わらせるための処理
+  // 初回表示カードに3秒待機
   useEffect(() => {
     if (isFirstRender && currentDialogueSet) {
-      // 最初の会話セットを表示中はスワイプ不可にする
-      const firstDialogue = currentDialogueSet.dialogue[0];
-      console.log("最初の文章:", firstDialogue.line);
-
-      // 少し待ってからスワイプ可能にする
       const timer = setTimeout(() => {
-        setIsFirstRender(false); // 文章表示後、スワイプ可能にする
-      }, 3000); // 3秒後にスワイプ可能に
-
-      return () => clearTimeout(timer); // クリーンアップ
+        setIsFirstRender(false);
+      }, 3000);
+      return () => clearTimeout(timer);
     }
   }, [isFirstRender, currentDialogueSet]);
 
+  // カードスワイプ処理
   const handleSwipe = useCallback(
     async (direction: "left" | "right") => {
-      // スワイプヒントが表示中であれば非表示にする
       if (showSwipeHint) {
         setShowSwipeHint(false);
-        // 揺れアニメーションを停止し、スワイプアニメーションへ引き継ぐ
         controls.stop();
-        controls.set({ x: 0, opacity: 1, rotate: 0 }); // スワイプアニメーションの開始状態をリセット
+        controls.set({ x: 0, opacity: 1, rotate: 0 });
       }
 
       const isRight = direction === "right";
 
-      // 現在のカードをアニメーションで画面外へ移動させる
+      // ★ カードをスワイプする前に学習時間を記録
+      await recordStudyTime();
+
       await controls.start({
         x: isRight ? SWIPE_X_OFFSET : -SWIPE_X_OFFSET,
         opacity: 0,
@@ -105,31 +111,33 @@ export default function ContenPage() {
         transition: { duration: ANIMATION_DURATION },
       });
 
-      // 次の会話セットのインデックスを計算（ループ）
       setCurrentIndex((prevIndex) =>
         dialogues.length > 0 ? (prevIndex + 1) % dialogues.length : 0
       );
 
-      // 新しいカードのためにアニメーションの状態をリセット
       controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [controls, dialogues.length, showSwipeHint] // showSwipeHint を依存配列に追加
+    [controls, dialogues.length, showSwipeHint, recordStudyTime]
   );
 
+  // 会話が完了したときの処理
   const handleDialogueCompleted = useCallback(
     async (dialogueId: string, rating: number) => {
-      console.log(rating);
       await markDialogueAsRead(uid, dialogueId);
+
+      // ★ 評価後にも学習時間を記録
+      await recordStudyTime();
+
       handleSwipe("right");
     },
-    [handleSwipe, uid]
+    [handleSwipe, uid, recordStudyTime]
   );
 
   if (!currentDialogueSet) return <></>;
 
   return (
     <div className="content-container">
-      {/* スワイプヒントのオーバーレイ */}
+      {/* スワイプヒント */}
       {showSwipeHint && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -138,9 +146,7 @@ export default function ContenPage() {
           transition={{ duration: 0.5 }}
           className="swipe-hint-overlay"
           onClick={() => {
-            // ヒントをクリックで非表示に
             setShowSwipeHint(false);
-            // 揺れアニメーションを停止し、元の位置に戻す
             controls.stop();
             controls.set({ x: 0, opacity: 1, rotate: 0 });
           }}
@@ -157,10 +163,10 @@ export default function ContenPage() {
         </motion.div>
       )}
 
-      {/* スワイプ可能な会話カードのコンテナ */}
+      {/* スワイプ可能な会話カード */}
       <motion.div
         key={currentDialogueSet.id}
-        animate={controls} // ここで `controls` をアニメーションに指定
+        animate={controls}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={(_, info) => {
@@ -178,7 +184,7 @@ export default function ContenPage() {
         />
       </motion.div>
 
-      {/* ====== 共通フッターナビ (SettingPage と同じ) ====== */}
+      {/* フッター */}
       <nav className="bottom-nav">
         <div className="bottom-nav-content">
           <Link to="/" className="nav-link">
