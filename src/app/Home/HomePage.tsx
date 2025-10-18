@@ -5,10 +5,10 @@ import { Link, useNavigate } from "react-router-dom"
 import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { Home, TrendingUp, Settings } from "lucide-react"
-import "./StartPage .css"
+import "./HomePage.css"
 import "../../../src/styles/common.css"
 
-export default function StartPage() {
+export default function HomePage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)

@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Card } from "../../components/ui/card";
+"use client"
 
-const categoryData: Record<
-  string,
-  { name: string; description: string; icon: string }
-> = {
+import { Link, useParams } from "react-router-dom"
+import { ArrowLeft } from "lucide-react"
+import { Card } from "../../components/ui/card"
+import "./CategoryPage.css"
+
+const categoryData: Record<string, { name: string; description: string; icon: string }> = {
   history: {
     name: "歴史",
     description: "歴史に関する興味深い雑学を集めました",
@@ -36,49 +36,40 @@ const categoryData: Record<
     description: "スポーツの世界の豆知識",
     icon: "🏃",
   },
-};
+}
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const category = categoryData[id] || categoryData.trivia;
+export default function CategoryPage() {
+  const { id } = useParams<{ id: string }>()
+  const category = categoryData[id || "trivia"] || categoryData.trivia
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center gap-4 px-4 py-4">
-          <Link to="/" className="text-foreground">
-            <ArrowLeft className="h-6 w-6" />
+    <div className="category-page">
+      <header className="category-header">
+        <div className="category-header-content">
+          <Link to="/" className="back-button">
+            <ArrowLeft className="back-icon" />
           </Link>
-          <h1 className="text-xl font-bold text-foreground">{category.name}</h1>
+          <h1 className="category-title">{category.name}</h1>
         </div>
       </header>
 
-      <main className="px-4 py-6">
-        <div className="mb-6 text-center">
-          <div className="mb-4 text-6xl">{category.icon}</div>
-          <p className="text-muted-foreground">{category.description}</p>
+      <main className="category-main">
+        <div className="category-intro">
+          <div className="category-icon">{category.icon}</div>
+          <p className="category-description">{category.description}</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="category-items">
           {[1, 2, 3].map((item) => (
-            <Card
-              key={item}
-              className="border-none p-4 shadow-md transition-transform hover:scale-[1.02]"
-            >
-              <h3 className="mb-2 font-bold text-foreground">
+            <Card key={item} className="category-card">
+              <h3 className="category-card-title">
                 {category.name}の雑学 #{item}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                ここに{category.name}に関する興味深い雑学が表示されます。
-              </p>
+              <p className="category-card-text">ここに{category.name}に関する興味深い雑学が表示されます。</p>
             </Card>
           ))}
         </div>
       </main>
     </div>
-  );
+  )
 }

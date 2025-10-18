@@ -9,6 +9,7 @@ import LoginPage from "./app/login/LoginPage"
 import RegisterPage from "./app/register/RegisterPage"
 import ProgressPage from "./app/progress/ProgressPage"
 import SettingsPage from "./app/settings/SettingPage"
+import HomePage from "./app/category/CategoryPage"
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -38,6 +39,8 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/progress" element={isAuthenticated ? <ProgressPage /> : <Navigate to="/login" replace />} />
       <Route path="/settings" element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" replace />} />
+      <Route path="/home" element={<HomePage />} />
+
     </Routes>
   )
 }
