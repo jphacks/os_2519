@@ -9,6 +9,7 @@ import { Label } from "../../components/ui/label"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { Input } from "../../components/ui/input"
 import { auth } from "../../firebase"
+import "../../index.css"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
