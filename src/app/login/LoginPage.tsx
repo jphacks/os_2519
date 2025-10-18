@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const LoginScreen = () => {
   return (
@@ -8,41 +8,59 @@ const LoginScreen = () => {
 
       {/* メールアドレスのフォームグループ */}
       <div className="text-left mb-5">
-        <label htmlFor="email" className="block mb-2 font-semibold text-gray-700">メールアドレス</label>
-        <input 
-          id="email" 
-          type="email" 
-          placeholder="メールアドレス" 
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-300 transition duration-150" 
+        <label
+          htmlFor="email"
+          className="block mb-2 font-semibold text-gray-700"
+        >
+          メールアドレス
+        </label>
+        <input
+          id="email"
+          type="email"
+          placeholder="メールアドレス"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-300 focus:border-orange-300 transition duration-150"
         />
       </div>
 
       {/* パスワードのフォームグループ */}
       <div className="text-left mb-6">
-        <label htmlFor="password" className="block mb-2 font-semibold text-gray-700">パスワード</label>
+        <label
+          htmlFor="password"
+          className="block mb-2 font-semibold text-gray-700"
+        >
+          パスワード
+        </label>
         <div className="relative">
-          <input 
-            id="password" 
-            type="password" 
-            placeholder="パスワード" 
-            className="w-full p-3 border border-gray-300 rounded-lg pr-10 focus:ring-2 focus:ring-orange-300 focus:border-orange-300 transition duration-150" 
+          <input
+            id="password"
+            type="password"
+            placeholder="パスワード"
+            className="w-full p-3 border border-gray-300 rounded-lg pr-10 focus:ring-2 focus:ring-orange-300 focus:border-orange-300 transition duration-150"
           />
           {/* 目のアイコン (視認性のためシンプルな文字で代替) */}
-          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer">👁</span>
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer">
+            👁
+          </span>
         </div>
       </div>
 
       {/* メインボタン */}
-      <button className="w-full py-4 mt-5 mb-6 text-lg font-bold text-white rounded-xl shadow-md transition duration-200 
-                       bg-yellow-600 hover:bg-yellow-700">
+      <button
+        className="w-full py-4 mt-5 mb-6 text-lg font-bold text-white rounded-xl shadow-md transition duration-200 
+                       bg-yellow-600 hover:bg-yellow-700"
+      >
         ログイン
       </button>
 
       {/* 補助リンク */}
       <div className="text-sm text-gray-600">
-        <p className="mb-2 cursor-pointer hover:text-yellow-700">パスワードを忘れた方</p>
+        <p className="mb-2 cursor-pointer hover:text-yellow-700">
+          パスワードを忘れた方
+        </p>
         <div className="w-4/5 h-px bg-gray-300 mx-auto my-4"></div>
-        <p className="mb-4 cursor-pointer font-medium hover:text-yellow-700">新規登録はこちら</p>
+        <p className="mb-4 cursor-pointer font-medium hover:text-yellow-700">
+          新規登録はこちら
+        </p>
       </div>
 
       {/* SNSログイン */}

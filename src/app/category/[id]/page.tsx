@@ -1,8 +1,11 @@
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
-import { Card } from "@/components/ui/card"
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
-const categoryData: Record<string, { name: string; description: string; icon: string }> = {
+const categoryData: Record<
+  string,
+  { name: string; description: string; icon: string }
+> = {
   history: {
     name: "歴史",
     description: "歴史に関する興味深い雑学を集めました",
@@ -33,21 +36,21 @@ const categoryData: Record<string, { name: string; description: string; icon: st
     description: "スポーツの世界の豆知識",
     icon: "🏃",
   },
-}
+};
 
 export default async function CategoryPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  const category = categoryData[id] || categoryData.trivia
+  const { id } = await params;
+  const category = categoryData[id] || categoryData.trivia;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-4 px-4 py-4">
-          <Link href="/" className="text-foreground">
+          <Link to="/" className="text-foreground">
             <ArrowLeft className="h-6 w-6" />
           </Link>
           <h1 className="text-xl font-bold text-foreground">{category.name}</h1>
@@ -62,15 +65,20 @@ export default async function CategoryPage({
 
         <div className="space-y-4">
           {[1, 2, 3].map((item) => (
-            <Card key={item} className="border-none p-4 shadow-md transition-transform hover:scale-[1.02]">
+            <Card
+              key={item}
+              className="border-none p-4 shadow-md transition-transform hover:scale-[1.02]"
+            >
               <h3 className="mb-2 font-bold text-foreground">
                 {category.name}の雑学 #{item}
               </h3>
-              <p className="text-sm text-muted-foreground">ここに{category.name}に関する興味深い雑学が表示されます。</p>
+              <p className="text-sm text-muted-foreground">
+                ここに{category.name}に関する興味深い雑学が表示されます。
+              </p>
             </Card>
           ))}
         </div>
       </main>
     </div>
-  )
+  );
 }
