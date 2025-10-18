@@ -37,23 +37,26 @@ export default function SettingsPage() {
         <div style={{ width: "2.5rem" }} />
       </header>
       {/* Randomness Slider Section */}
-      <div className="settings-card randomness-card">
-        <h2 className="settings-title">ホーム画面のランダム性</h2>
-        <p className="settings-description">
-          表示される雑学のランダム性を調整できます
-        </p>
-        <div className="randomness-controls">
-          <Slider
-            value={randomness}
-            onValueChange={setRandomness}
-            max={100}
-            step={1}
-            className="slider-full"
-          />
-          <div className="slider-values">
-            <span className="slider-label">低</span>
-            <span className="slider-value">{randomness[0]}</span>
-            <span className="slider-label">高</span>
+      <div className="settings-content">
+        <div className="settings-card randomness-card">
+          <h2 className="settings-title">雑学のランダム性</h2>
+
+          <p className="settings-description">
+            表示される雑学のランダム性を調整できます
+          </p>
+          <div className="randomness-controls">
+            <div className="slider-values">
+              <span className="slider-label">低</span>
+              <span className="slider-value">{randomness[0]}</span>
+              <span className="slider-label">高</span>
+            </div>
+            <Slider
+              value={randomness}
+              onValueChange={setRandomness}
+              max={100}
+              step={1}
+              className="slider-full"
+            />
           </div>
         </div>
       </div>
