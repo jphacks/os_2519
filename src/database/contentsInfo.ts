@@ -1,4 +1,4 @@
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase"
 
 export async function getContentsInfo(contentsId: string) {
@@ -22,6 +22,17 @@ export async function getContentsInfo(contentsId: string) {
     return contentsData
 }
 
+export async function getContentsCollectionInfo() {
+        const contentsRef = collection(db, "contents")
+        const snapshot = await getDocs(contentsRef);  
+    
+        const contents = snapshot.docs.map(doc => ({
+            id: doc.id,      // ドキュメントID
+            ...doc.data()    // ドキュメントの中身
+        }));
+    
+        return contents;
+    }
 
 export async function createOrupdateContentsInfo(contentsId: string, data:{
     dialogue?:{
@@ -47,4 +58,5 @@ export async function createOrupdateContentsInfo(contentsId: string, data:{
         createdAt: serverTimestamp(),
     }, { merge: true });
 }
+
 

@@ -7,6 +7,7 @@ import { Home, TrendingUp, Settings } from "lucide-react";
 import "./ContentPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
+import { markDialogueAsRead } from "../../database/userInfo";
 
 // ==================== 型定義 ====================
 
@@ -135,7 +136,8 @@ export default function ContenPage() {
 
   // ★追加: DialogueCardから会話完了通知を受け取るハンドラー
   const handleDialogueCompleted = useCallback(
-    (dialogueId: number, rating: number) => {
+    async(dialogueId: number, rating: number) => {
+      await markDialogueAsRead("bRdsB9Oz4rc6MwF4uhozuVe8tdz1", `lesson${dialogueId}`)//修正する
       console.log(`Dialogue ${dialogueId} completed with rating: ${rating}`);
       // 評価は後でバックエンドに送信するなどの処理を追加できる
 

@@ -60,6 +60,40 @@ export async function setInitialUserInfo(userId: string, email:string)
 }
 
 
+export async function markDialogueAsRead(userId: string, contentId: string) {
+    console.log("yobareta")
+    if (!userId) return;
+
+    // 1. 既存のユーザー情報を取得
+    const userData = await getUserInfo(userId);
+
+    // 2. alreadyRead に追加（重複チェック）
+    const alreadyRead: string[] = userData.alreadyRead || [];
+    if (!alreadyRead.includes(contentId)) {
+        alreadyRead.push(contentId);
+    }
+
+    // 3. readList に追加（今日の日付キーで配列管理）
+    const todayKey = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // "20251018" の形式
+    const readList = { ...(userData.readList || {}) };
+
+    if (!readList[todayKey]) {
+        readList[todayKey] = [];
+    }
+
+    if (!readList[todayKey].includes(contentId)) {
+        readList[todayKey].push(contentId);
+    }
+
+    // 4. Firestore に更新
+    await createOrupdateUserInfo(userId, {
+        alreadyRead,
+        readList
+    });
+
+    console.log(`User ${userId} updated: alreadyRead=${alreadyRead}, readList=${JSON.stringify(readList)}`);
+}
+
 // export async function setInitialUserInfo(email:string) {
 //     const userRef = collection(db, "users")
 //     const Ref = await addDoc(userRef, {
