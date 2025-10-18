@@ -1,9 +1,8 @@
-// DialogueCard.tsx (リファクタリング後)
-import React, { useState, useEffect } from "react";
+// DialogueCard.tsx (修正版)
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
-// ==================== 型定義 ====================
-
+/** ==================== 型定義 ==================== **/
 interface DialogueLine {
   speaker: "student" | "teacher";
   line: string;
@@ -15,19 +14,11 @@ interface DialogueCardProps {
     title: string;
     dialogue: DialogueLine[];
   };
-  // ★追加: 会話が完了し、評価されたときに呼び出されるコールバック関数
+  // 会話が完了し、評価されたときに呼び出されるコールバック関数
   onDialogueCompleted: (dialogueId: number, rating: number) => void;
 }
 
-interface MessageBubbleProps {
-  $isStudent: boolean;
-}
-
-interface MessageRowProps {
-  $isStudent: boolean;
-}
-
-// ==================== スタイル ====================
+/** ==================== スタイル ==================== **/
 
 const CardContainer = styled.div`
   background-color: #ffffff;
@@ -42,10 +33,10 @@ const CardContainer = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #333;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   text-align: center;
 `;
 
@@ -55,8 +46,8 @@ const ChatWrapper = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   overflow-y: auto;
-  padding-right: 5px;
-  margin-right: -5px;
+  padding-right: 6px;
+  margin-right: -6px;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -82,23 +73,23 @@ const Avatar = styled.img`
   flex-shrink: 0;
 `;
 
-const MessageBubble = styled.div<MessageBubbleProps>`
-  background-color: ${(props) => (props.$isStudent ? "#f472b6" : "#e0e0e0")};
-  color: ${(props) => (props.$isStudent ? "white" : "black")};
+const MessageBubble = styled.div<{ $isStudent: boolean }>`
+  background-color: ${(p) => (p.$isStudent ? "#f472b6" : "#e0e0e0")};
+  color: ${(p) => (p.$isStudent ? "white" : "black")};
   border-radius: 15px;
   padding: 10px 14px;
   margin: 5px 0;
   max-width: 70%;
-  align-self: ${(props) => (props.$isStudent ? "flex-end" : "flex-start")};
+  align-self: ${(p) => (p.$isStudent ? "flex-end" : "flex-start")};
   position: relative;
   word-break: break-word;
 `;
 
-const MessageRow = styled.div<MessageRowProps>`
+const MessageRow = styled.div<{ $isStudent: boolean }>`
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  flex-direction: ${(props) => (props.$isStudent ? "row-reverse" : "row")};
+  flex-direction: ${(p) => (p.$isStudent ? "row-reverse" : "row")};
   margin-bottom: 10px;
 `;
 
@@ -107,102 +98,125 @@ const StarsWrapper = styled.div`
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
-  flex-wrap: wrap; /* スマホ表示時に折り返す */
+  margin-top: 18px;
+  flex-wrap: wrap;
 `;
 
-const Star = styled.span<{ active: boolean; disabled: boolean }>`
+const Star = styled.span<{ $active: boolean; $disabled: boolean }>`
   font-size: 30px;
-  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")}; /* 無効時はカーソル変更 */
-  color: ${(props) => (props.active ? "#FFD700" : "#D3D3D3")};
-  opacity: ${(props) => (props.disabled ? 0.6 : 1)}; /* 無効時は半透明 */
+  line-height: 1;
+  display: inline-block;
+  user-select: none;
+  cursor: ${(p) => (p.$disabled ? "not-allowed" : "pointer")};
+  color: ${(p) => (p.$active ? "#FFD700" : "#D3D3D3")};
+  opacity: ${(p) => (p.$disabled ? 0.65 : 1)};
 
+  /* active を最優先、disabled は hover のみを抑制する */
   &:hover {
-    color: ${(props) => (props.disabled ? "#D3D3D3" : "#ffcc00")}; /* 無効時はホバー効果なし */
+    color: ${(p) => (!p.$disabled && !p.$active ? "#ffcc00" : undefined)};
+  }
+
+  /* キーボードフォーカス時の視覚フィードバック */
+  &:focus {
+    outline: 2px solid rgba(0, 0, 0, 0.12);
+    outline-offset: 2px;
   }
 `;
 
 const InstructionText = styled.p`
-  font-size: 16px;
+  font-size: 15px;
   color: #555;
   text-align: center;
-  margin-bottom: 10px;
+  margin: 0 0 8px 0;
 `;
 
-// ==================== ヘルパー関数 ====================
+/** ==================== ヘルパー ==================== **/
 
-const getAvatarUrl = (speaker: string): string => {
-  return speaker === "student"
-    ? "https://i.pravatar.cc/50?img=15" // 生徒のアバター
-    : "https://i.pravatar.cc/50?img=5";  // 先生のアバター
-};
+const getAvatarUrl = (speaker: DialogueLine["speaker"]): string =>
+  speaker === "student"
+    ? "https://i.pravatar.cc/50?img=15"
+    : "https://i.pravatar.cc/50?img=5";
 
-// ==================== コンポーネント ====================
+/** ==================== コンポーネント ==================== **/
 
 const Message: React.FC<DialogueLine> = ({ speaker, line }) => {
   const isStudent = speaker === "student";
   return (
     <MessageRow $isStudent={isStudent}>
-      <Avatar src={getAvatarUrl(speaker)} alt={speaker} />
+      <Avatar src={getAvatarUrl(speaker)} alt={`${speaker} avatar`} />
       <MessageBubble $isStudent={isStudent}>{line}</MessageBubble>
     </MessageRow>
   );
 };
 
 const DialogueCard: React.FC<DialogueCardProps> = ({ dialogueData, onDialogueCompleted }) => {
-  const { id: dialogueId, title, dialogue } = dialogueData; // idも受け取る
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [rating, setRating] = useState(0);
-  const [hasRated, setHasRated] = useState(false); // ★追加: ユーザーが評価を終えたかどうかの状態
+  const { id: dialogueId, title, dialogue } = dialogueData;
+  // メッセージを1つずつ表示するために currentIndex を 1 から開始
+  const [currentIndex, setCurrentIndex] = useState(() => (dialogue && dialogue.length > 0 ? 1 : 0));
+  const [rating, setRating] = useState<number>(0);
+  const [hasRated, setHasRated] = useState<boolean>(false);
 
   useEffect(() => {
-    // ★変更: すべてのメッセージが表示され、かつまだ評価されていない場合のみタイマーをセット
+    // メッセージが残っている && 評価していない ときのみタイマーで進める
     if (currentIndex < dialogue.length && !hasRated) {
       const timer = setTimeout(() => {
-        setCurrentIndex(currentIndex + 1);
-      }, 2000); // 2秒ごとに次のメッセージを表示
+        setCurrentIndex((prev) => Math.min(prev + 1, dialogue.length));
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [currentIndex, dialogue.length, hasRated]); // hasRatedを依存配列に追加
+    return;
+  }, [currentIndex, dialogue.length, hasRated]);
 
   // 星をクリックしたときの処理
   const handleStarClick = (star: number) => {
-    if (hasRated) return; // 既に評価済みなら何もしない
+    if (hasRated) return;
+    setRating(star);
+    setHasRated(true);
+    // 親に通知（親がこの通知で DialogueCard をアンマウント／再作成するなら
+    // 親側で扱いを注意してもらう必要があります）
+    onDialogueCompleted(dialogueId, star);
+  };
 
-    setRating(star); // 選ばれた星の数を状態に保存
-    setHasRated(true); // ★追加: 評価が完了したとマーク
-
-    // ★追加: 親コンポーネントに通知する
-    // 例: 少し遅延させてから通知すると、ユーザーがクリックした視覚的なフィードバックが得られる
-    setTimeout(() => {
-      onDialogueCompleted(dialogueId, star);
-    }, 500); // 0.5秒後に次の会話へ進む
+  // キーボード用ハンドラ（Enter / Space で選択）
+  const handleStarKeyDown = (e: React.KeyboardEvent, star: number) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleStarClick(star);
+    }
   };
 
   return (
     <CardContainer>
       <Title>{title}</Title>
+
       <ChatWrapper>
         {dialogue.slice(0, currentIndex).map((msg, index) => (
           <Message key={index} speaker={msg.speaker} line={msg.line} />
         ))}
       </ChatWrapper>
 
-      {/* メッセージがすべて表示された後に表示される */}
-      {currentIndex === dialogue.length && (
+      {/* 全てのメッセージが表示されたら評価 UI を出す */}
+      {currentIndex >= dialogue.length && dialogue.length > 0 && (
         <StarsWrapper>
-          <InstructionText>評価して次へ</InstructionText>
-
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              active={star <= rating}
-              onClick={() => handleStarClick(star)}
-              disabled={hasRated} // ★追加: 評価後はクリックできないようにする
-            >
-              ★
-            </Star>
-          ))}
+          <div style={{ width: "100%", textAlign: "center" }}>
+            <InstructionText>評価して次へ</InstructionText>
+            <div aria-hidden style={{ height: 6 }} />
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                role="button"
+                tabIndex={hasRated ? -1 : 0}
+                $active={star <= rating}
+                $disabled={hasRated}
+                onClick={() => handleStarClick(star)}
+                onKeyDown={(e) => handleStarKeyDown(e, star)}
+                aria-pressed={star <= rating}
+                aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+              >
+                ★
+              </Star>
+            ))}
+          </div>
         </StarsWrapper>
       )}
     </CardContainer>
