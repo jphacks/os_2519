@@ -7,7 +7,13 @@ import { Home, TrendingUp, Settings } from "lucide-react";
 import "./ContentPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
-import { addDailyStudyTime, createOrupdateUserInfo, getUserPreference, markDialogueAsRead, updatePreferenceVector } from "../../database/userInfo";
+import {
+  addDailyStudyTime,
+  createOrupdateUserInfo,
+  getUserPreference,
+  markDialogueAsRead,
+  updatePreferenceVector,
+} from "../../database/userInfo";
 import { auth } from "../../firebase";
 import { getRecommendedContents } from "../../database/contentsInfo";
 
@@ -22,17 +28,17 @@ interface DialogueSet {
   id: string;
   title: string;
   dialogue: DialogueLine[];
-  field:number[]
+  field: number[]; // コンテンツベクトル
 }
 
 // ==================== 定数定義 ====================
 
 // アニメーション定数
-const ANIMATION_DURATION = 0.4; // アニメーションの秒数
-const SWIPE_THRESHOLD = 120; // スワイプと判定する最小移動距離 (px)
-const SWIPE_X_OFFSET = 400; // スワイプ時のX軸移動距離 (px)
-const SWIPE_ROTATE_DEGREE = 10; // スワイプ時の回転角度 (deg)
-const HINT_AUTOHIDE_DELAY = 5000; // ヒントの自動非表示までの時間 (ms)
+const ANIMATION_DURATION = 0.4;
+const SWIPE_THRESHOLD = 120;
+const SWIPE_X_OFFSET = 400;
+const SWIPE_ROTATE_DEGREE = 10;
+const HINT_AUTOHIDE_DELAY = 5000;
 
 // ==================== コンポーネント ====================
 
@@ -49,9 +55,9 @@ export default function ContentPage() {
   const [showSwipeHint, setShowSwipeHint] = useState(true);
   const [isFirstRender, setIsFirstRender] = useState(true);
   const [searchParams] = useSearchParams();
-  const categoryIndexStr = searchParams.get("category"); 
-  const n = categoryIndexStr ? parseInt(categoryIndexStr, 10) : -1; 
-  // ★ 滞在時間の測定用
+  const categoryIndexStr = searchParams.get("category");
+  const n = categoryIndexStr ? parseInt(categoryIndexStr, 10) : -1;
+
   const startTimeRef = useRef<number>(Date.now());
 
   // 学習時間を記録
@@ -63,39 +69,36 @@ export default function ContentPage() {
     await addDailyStudyTime(uid, elapsedSec);
   }, [uid]);
 
-  // 会話コンテンツの取得と初期処理
+  // 会話コンテンツの取得
   useEffect(() => {
     const getdialogue = async () => {
-      const dialogue: DialogueSet[] = await getRecommendedContents(uid,n);
+      const dialogue: DialogueSet[] = await getRecommendedContents(uid, n);
       setDialogus(dialogue);
-      startTimeRef.current = Date.now(); // 初回のカード表示時間記録
+      startTimeRef.current = Date.now();
     };
     getdialogue();
 
-    // スワイプヒントの非表示タイマー
     let timer: NodeJS.Timeout;
     if (showSwipeHint) {
-      timer = setTimeout(() => {
-        setShowSwipeHint(false);
-      }, HINT_AUTOHIDE_DELAY);
+      timer = setTimeout(() => setShowSwipeHint(false), HINT_AUTOHIDE_DELAY);
     }
-
     return () => clearTimeout(timer);
-  }, [uid, showSwipeHint]);
+  }, [uid, showSwipeHint, n]);
 
   // 初回表示カードに3秒待機
   useEffect(() => {
     if (isFirstRender && currentDialogueSet) {
-      const timer = setTimeout(() => {
-        setIsFirstRender(false);
-      }, 3000);
+      const timer = setTimeout(() => setIsFirstRender(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [isFirstRender, currentDialogueSet]);
 
-  // カードスワイプ処理
+  // ==================== カードスワイプ ====================
+
   const handleSwipe = useCallback(
     async (direction: "left" | "right") => {
+      if (!currentDialogueSet) return;
+
       if (showSwipeHint) {
         setShowSwipeHint(false);
         controls.stop();
@@ -104,13 +107,53 @@ export default function ContentPage() {
 
       const isRight = direction === "right";
 
-      // ★ カードをスワイプする前に学習時間を記録
+      // 学習時間記録
       await recordStudyTime();
 
+      // スワイプ＝skipとして嗜好更新
+      const P_old = await getUserPreference(uid);
+      const V = currentDialogueSet.field;
+      const P_new = updatePreferenceVector(P_old, V, "skip");
+      await createOrupdateUserInfo(uid, { preference: P_new });
+
+      // アニメーション
       await controls.start({
         x: isRight ? SWIPE_X_OFFSET : -SWIPE_X_OFFSET,
         opacity: 0,
         rotate: isRight ? SWIPE_ROTATE_DEGREE : -SWIPE_ROTATE_DEGREE,
+        transition: { duration: ANIMATION_DURATION },
+      });
+
+      // 次のカードへ
+      setCurrentIndex((prevIndex) =>
+        dialogues.length > 0 ? (prevIndex + 1) % dialogues.length : 0
+      );
+
+      controls.set({ x: 0, opacity: 1, rotate: 0 });
+    },
+    [controls, dialogues.length, showSwipeHint, recordStudyTime, uid, currentDialogueSet]
+  );
+
+  // ==================== 会話完了 ====================
+
+  const handleDialogueCompleted = useCallback(
+    async (dialogueId: string, rating: number | "skip") => {
+      if (!currentDialogueSet) return;
+
+      await markDialogueAsRead(uid, dialogueId);
+      await recordStudyTime();
+
+      // 評価に応じた嗜好更新
+      const P_old = await getUserPreference(uid);
+      const V = currentDialogueSet.field;
+      const P_new = updatePreferenceVector(P_old, V, rating);
+      await createOrupdateUserInfo(uid, { preference: P_new });
+
+      // アニメーションのみ
+      await controls.start({
+        x: SWIPE_X_OFFSET,
+        opacity: 0,
+        rotate: SWIPE_ROTATE_DEGREE,
         transition: { duration: ANIMATION_DURATION },
       });
 
@@ -120,32 +163,8 @@ export default function ContentPage() {
 
       controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [controls, dialogues.length, showSwipeHint, recordStudyTime]
+    [controls, dialogues.length, recordStudyTime, uid, currentDialogueSet]
   );
-
-  // 会話が完了したときの処理
-  const handleDialogueCompleted = useCallback(
-    async (dialogueId: string, rating: number | "skip") => {
-      await markDialogueAsRead(uid, dialogueId);
-  
-      // 学習時間を記録
-      await recordStudyTime();
-  
-      // n=-1 の場合のみ嗜好更新
-      if (n === -1) {
-        // 例: 現在のPを取得（Firebaseから取得する想定）
-        const P_old = await getUserPreference(uid); // [0.1, 0.1, ..., 0.1]
-        const V = currentDialogueSet.field; // コンテンツのOne-Hotベクトル
-        const P_new = updatePreferenceVector(P_old, V, rating);
-        const data = { prefernce: P_new };
-        await createOrupdateUserInfo(uid, data);
-      }
-  
-      handleSwipe("right");
-    },
-    [handleSwipe, uid, recordStudyTime, n]
-  );
-  
 
   if (!currentDialogueSet) return <></>;
 
@@ -177,7 +196,7 @@ export default function ContentPage() {
         </motion.div>
       )}
 
-      {/* スワイプ可能な会話カード */}
+      {/* 会話カード */}
       <motion.div
         key={currentDialogueSet.id}
         animate={controls}
@@ -190,7 +209,6 @@ export default function ContentPage() {
             handleSwipe("left");
           }
         }}
-        //className="bg-white w-full min-w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]"
       >
         <DialogueCard
           dialogueData={currentDialogueSet}

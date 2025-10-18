@@ -29,7 +29,7 @@ export async function getUserInfo(userId: string) {
 export async function createOrupdateUserInfo(userId: string, data: {
     alreadyRead?: string[]
     email?: string
-    prefernce?: number[]
+    preference?: number[]
     readList?: {}
     userName?: string
 }) {
@@ -178,7 +178,6 @@ export async function getUserPreference(userId: string) {
         return {};
     }
     const userData = userDoc.data();
-
     return userData.preference
 }
 
