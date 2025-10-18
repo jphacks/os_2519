@@ -1,16 +1,16 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { Card } from "../../components/ui/card"
-import { Button } from "../../components/ui/button"
 import { ArrowLeft, Settings, Trophy, Flame, GraduationCap, Target, Home, TrendingUp } from "lucide-react"
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart"
-import { auth } from "../../firebase"
+import "./ProgressPage.css"
+import "../../../src/styles/common.css"
+import "../../../src/styles/components.css"
 
 interface StudyStats {
   totalQuestions: number
@@ -48,10 +48,10 @@ export default function ProgressPage() {
   const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([])
   const [studyHistory, setStudyHistory] = useState<StudyHistoryItem[]>([])
   const [badges] = useState<BadgeItem[]>([
-    { id: "1", name: "初級マスター", icon: <Trophy className="h-8 w-8" />, earned: true },
-    { id: "2", name: "連続7日学習", icon: <Flame className="h-8 w-8" />, earned: true },
-    { id: "3", name: "歴史博士", icon: <GraduationCap className="h-8 w-8" />, earned: true },
-    { id: "4", name: "100問正解", icon: <Target className="h-8 w-8" />, earned: false },
+    { id: "1", name: "初級マスター", icon: <Trophy style={{ width: "2rem", height: "2rem" }} />, earned: true },
+    { id: "2", name: "連続7日学習", icon: <Flame style={{ width: "2rem", height: "2rem" }} />, earned: true },
+    { id: "3", name: "歴史博士", icon: <GraduationCap style={{ width: "2rem", height: "2rem" }} />, earned: true },
+    { id: "4", name: "100問正解", icon: <Target style={{ width: "2rem", height: "2rem" }} />, earned: false },
   ])
 
   useEffect(() => {
@@ -62,7 +62,6 @@ export default function ProgressPage() {
       }
 
       try {
-        // Mock data for demonstration
         setStats({
           totalQuestions: 1234,
           totalTime: 625,
@@ -112,125 +111,125 @@ export default function ProgressPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f0] flex items-center justify-center">
-        <div className="text-lg text-gray-600">読み込み中...</div>
+      <div className="progress-page" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontSize: "1.125rem", color: "#6b7280" }}>読み込み中...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f0] pb-20">
-      <header className="bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-lg font-semibold">学習の記録</h1>
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/settings">
-            <Settings className="h-5 w-5" />
-          </Link>
-        </Button>
+    <div className="progress-page">
+      <header className="progress-header">
+        <button onClick={() => navigate(-1)} className="button button-ghost button-icon">
+          <ArrowLeft style={{ width: "1.25rem", height: "1.25rem" }} />
+        </button>
+        <h1 className="progress-header-title">学習の記録</h1>
+        <Link to="/settings">
+          <button className="button button-ghost button-icon">
+            <Settings style={{ width: "1.25rem", height: "1.25rem" }} />
+          </button>
+        </Link>
       </header>
 
-      <div className="px-4 py-6 space-y-6">
-        <Card className="p-6 bg-white">
-          <div className="text-sm text-gray-600 mb-2">学習した雑学</div>
-          <div className="text-4xl font-bold text-blue-500">{stats.totalQuestions.toLocaleString()}</div>
-        </Card>
+      <div className="progress-content">
+        <div className="progress-stats-card">
+          <div className="progress-stats-label">学習した雑学</div>
+          <div className="progress-stats-value">{stats.totalQuestions.toLocaleString()}</div>
+        </div>
 
-        <Card className="p-6 bg-white">
-          <div className="text-sm text-gray-600 mb-2">総学習時間</div>
-          <div className="text-4xl font-bold text-blue-500">{formatTime(stats.totalTime)}</div>
-        </Card>
+        <div className="progress-stats-card">
+          <div className="progress-stats-label">総学習時間</div>
+          <div className="progress-stats-value">{formatTime(stats.totalTime)}</div>
+        </div>
 
-        <Card className="p-6 bg-white">
-          <div className="text-sm text-gray-600 mb-2">正解率</div>
-          <div className="text-4xl font-bold text-blue-500">{stats.accuracy}%</div>
-        </Card>
+        <div className="progress-stats-card">
+          <div className="progress-stats-label">正解率</div>
+          <div className="progress-stats-value">{stats.accuracy}%</div>
+        </div>
 
-        <Card className="p-6 bg-white">
-          <h2 className="text-lg font-semibold mb-4">1日の学習活動</h2>
-          <ChartContainer
-            config={{
-              questions: {
-                label: "問題数",
-                color: "#3b82f6",
-              },
-            }}
-            className="h-[200px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyActivity}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fill: "#6b7280", fontSize: 12 }} tickLine={false} />
-                <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} tickLine={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="questions" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
+        <div className="progress-chart-card">
+          <h2 className="progress-chart-title">1日の学習活動</h2>
+          <div className="progress-chart-container">
+            <ChartContainer
+              config={{
+                questions: {
+                  label: "問題数",
+                  color: "#3b82f6",
+                },
+              }}
+              style={{ height: "200px", minWidth: "300px" }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyActivity}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tick={{ fill: "#6b7280", fontSize: 12 }} tickLine={false} />
+                  <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} tickLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="questions" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </div>
 
-        <Card className="p-6 bg-white">
-          <h2 className="text-lg font-semibold mb-4">獲得したバッジ</h2>
-          <div className="grid grid-cols-4 gap-4">
+        <div className="progress-chart-card">
+          <h2 className="progress-chart-title">獲得したバッジ</h2>
+          <div className="progress-badges-grid">
             {badges.map((badge) => (
-              <div key={badge.id} className="flex flex-col items-center gap-2">
+              <div key={badge.id} className="progress-badge-item">
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                    badge.earned ? "bg-yellow-100 text-yellow-600" : "bg-gray-100 text-gray-400"
-                  }`}
+                  className={`progress-badge-icon ${badge.earned ? "progress-badge-earned" : "progress-badge-locked"}`}
                 >
                   {badge.icon}
                 </div>
-                <div className="text-xs text-center text-gray-600">{badge.name}</div>
+                <div className="progress-badge-name">{badge.name}</div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-6 bg-white">
-          <h2 className="text-lg font-semibold mb-4">学習履歴</h2>
-          <div className="space-y-3">
+        <div className="progress-chart-card">
+          <h2 className="progress-chart-title">学習履歴</h2>
+          <div className="progress-history-list">
             {studyHistory.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-                <div className="flex items-center gap-3">
+              <div key={index} className="progress-history-item">
+                <div className="progress-history-content">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      item.correct ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
-                    }`}
+                    className={`progress-history-icon ${item.correct ? "progress-history-icon-correct" : "progress-history-icon-incorrect"}`}
                   >
                     {item.correct ? "○" : "×"}
                   </div>
-                  <div>
-                    <div className="font-medium text-sm">{item.question}</div>
-                    <div className="text-xs text-gray-500">
+                  <div className="progress-history-details">
+                    <div className="progress-history-question">{item.question}</div>
+                    <div className="progress-history-meta">
                       {item.date} · {item.subject}
                     </div>
                   </div>
                 </div>
-                <div className={`text-sm font-medium ${item.correct ? "text-green-600" : "text-red-600"}`}>
+                <div
+                  className={`progress-history-result ${item.correct ? "progress-history-result-correct" : "progress-history-result-incorrect"}`}
+                >
                   {item.correct ? "正解" : "不正解"}
                 </div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3">
-        <div className="flex items-center justify-around">
-          <Link to="/" className="flex flex-col items-center gap-1 text-gray-600">
-            <Home className="h-6 w-6" />
-            <span className="text-xs">ホーム</span>
+      <nav className="bottom-nav">
+        <div className="bottom-nav-content">
+          <Link to="/" className="nav-link">
+            <Home className="nav-icon" />
+            <span className="nav-label">ホーム</span>
           </Link>
-          <Link to="/progress" className="flex flex-col items-center gap-1 text-blue-500">
-            <TrendingUp className="h-6 w-6" />
-            <span className="text-xs">進捗</span>
+          <Link to="/progress" className="nav-link nav-link-active">
+            <TrendingUp className="nav-icon" />
+            <span className="nav-label">進捗</span>
           </Link>
-          <Link to="/settings" className="flex flex-col items-center gap-1 text-gray-600">
-            <Settings className="h-6 w-6" />
-            <span className="text-xs">設定</span>
+          <Link to="/settings" className="nav-link">
+            <Settings className="nav-icon" />
+            <span className="nav-label">設定</span>
           </Link>
         </div>
       </nav>

@@ -1,15 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Button } from "../../components/ui/button"
-import { Label } from "../../components/ui/label"
 import { signInWithEmailAndPassword } from "firebase/auth"
-import { Input } from "../../components/ui/input"
 import { auth } from "../../firebase"
-import "../../index.css"
+import "./LoginPage.css"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -43,62 +39,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#e8e3d8] p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#3d3d3d] mb-2">ログイン</h1>
+    <div className="login-page">
+      <div className="login-content">
+        <div style={{ marginBottom: "2rem" }}>
+          <h1 className="login-title">ログイン</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{error}</div>
-          )}
+        <form onSubmit={handleSubmit} className="login-form">
+          {error && <div className="login-error">{error}</div>}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-[#3d3d3d] text-base font-normal">
+          <div className="login-field">
+            <label htmlFor="email" className="login-label">
               メールアドレス
-            </Label>
-            <Input
+            </label>
+            <input
               id="email"
               type="email"
               placeholder="メールアドレス"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-20 bg-white border-none shadow-md rounded-2xl text-[#3d3d3d] placeholder:text-[#9ca3af] text-lg px-6"
+              className="login-input"
               required
               disabled={loading}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#3d3d3d] text-base font-normal">
+          <div className="login-field">
+            <label htmlFor="password" className="login-label">
               パスワード
-            </Label>
-            <Input
+            </label>
+            <input
               id="password"
               type="password"
               placeholder="パスワード"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-20 bg-white border-none shadow-md rounded-2xl text-[#3d3d3d] placeholder:text-[#9ca3af] text-lg px-6"
+              className="login-input"
               required
               disabled={loading}
             />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full h-20 bg-[#c89456] hover:bg-[#b8844a] text-white text-2xl font-medium rounded-2xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
+          <button type="submit" className="login-button" disabled={loading}>
             {loading ? "ログイン中..." : "ログイン"}
-          </Button>
+          </button>
         </form>
 
-        <div className="text-center">
-          <p className="text-[#3d3d3d] text-sm">
+        <div style={{ marginTop: "2rem" }}>
+          <p className="login-link-text">
             アカウントをお持ちでない方は{" "}
-            <Link to="/register" className="text-[#c89456] hover:underline font-medium">
+            <Link to="/register" className="login-link">
               新規登録
             </Link>
           </p>

@@ -1,0 +1,136 @@
+/* Register Page Styles */
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e8e3d8;
+  padding: 1rem;
+}
+
+.register-content {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.register-title {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: #3d3d3d;
+  margin-bottom: 0.5rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.register-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.register-label {
+  color: #3d3d3d;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.register-input {
+  height: 5rem;
+  background-color: white;
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  color: #3d3d3d;
+  font-size: 1.125rem;
+  padding: 0 1.5rem;
+}
+
+.register-input::placeholder {
+  color: #9ca3af;
+}
+
+.register-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.register-password-field {
+  position: relative;
+}
+
+.register-password-strength {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 0.25rem;
+}
+
+.register-strength-bar {
+  width: 0.75rem;
+  height: 1.5rem;
+  border-radius: 0.125rem;
+  transition: background-color 0.2s;
+}
+
+.register-strength-bar-inactive {
+  background-color: #d1d5db;
+}
+
+.register-strength-bar-active {
+  background-color: #6b9f5e;
+}
+
+.register-button {
+  width: 100%;
+  height: 5rem;
+  background-color: #c89456;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 500;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.register-button:hover:not(:disabled) {
+  background-color: #b8844a;
+}
+
+.register-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.register-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.register-link-text {
+  text-align: center;
+  color: #3d3d3d;
+  font-size: 0.875rem;
+}
+
+.register-link {
+  color: #c89456;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { Card } from "../../../components/ui/card";
+import { Card } from "../../components/ui/card";
 
 const categoryData: Record<
   string,

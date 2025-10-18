@@ -1,0 +1,83 @@
+/* Settings Page Styles */
+.settings-page {
+  min-height: 100vh;
+  background-color: #f5f5f0;
+  padding-bottom: 5rem;
+}
+
+.settings-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.settings-header-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.settings-content {
+  padding: 1.5rem 1rem;
+  max-width: 56rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-card {
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 0.5rem;
+}
+
+.settings-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  font-size: 0.875rem;
+  color: #3d3d3d;
+}
+
+.settings-value {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.settings-logout-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-logout-button:hover {
+  background-color: #b91c1c;
+}

@@ -1,14 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Input } from "../../components/ui/input"
-import { Button } from "../../components/ui/button"
-import { Label } from "../../components/ui/label"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "../../firebase"
+import "./RegisterPage.css"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -58,74 +55,67 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#e8e3d8] p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#3d3d3d] mb-2">新規登録</h1>
+    <div className="register-page">
+      <div className="register-content">
+        <div style={{ marginBottom: "2rem" }}>
+          <h1 className="register-title">新規登録</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{error}</div>
-          )}
+        <form onSubmit={handleSubmit} className="register-form">
+          {error && <div className="register-error">{error}</div>}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-[#3d3d3d] text-base font-normal">
+          <div className="register-field">
+            <label htmlFor="email" className="register-label">
               メールアドレス
-            </Label>
-            <Input
+            </label>
+            <input
               id="email"
               type="email"
               placeholder="メールアドレス"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-20 bg-white border-none shadow-md rounded-2xl text-[#3d3d3d] placeholder:text-[#9ca3af] text-lg px-6"
+              className="register-input"
               required
               disabled={loading}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#3d3d3d] text-base font-normal">
+          <div className="register-field">
+            <label htmlFor="password" className="register-label">
               パスワード
-            </Label>
-            <div className="relative">
-              <Input
+            </label>
+            <div className="register-password-field">
+              <input
                 id="password"
                 type="password"
                 placeholder="パスワード"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-20 bg-white border-none shadow-md rounded-2xl text-[#3d3d3d] placeholder:text-[#9ca3af] text-lg px-6 pr-24"
+                className="register-input"
+                style={{ paddingRight: "6rem" }}
                 required
                 disabled={loading}
               />
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 flex gap-1">
+              <div className="register-password-strength">
                 {[1, 2, 3, 4].map((level) => (
                   <div
                     key={level}
-                    className={`w-3 h-6 rounded-sm transition-colors ${
-                      level <= passwordStrength ? "bg-[#6b9f5e]" : "bg-gray-300"
-                    }`}
+                    className={`register-strength-bar ${level <= passwordStrength ? "register-strength-bar-active" : "register-strength-bar-inactive"}`}
                   />
                 ))}
               </div>
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full h-20 bg-[#c89456] hover:bg-[#b8844a] text-white text-2xl font-medium rounded-2xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={loading}
-          >
+          <button type="submit" className="register-button" disabled={loading}>
             {loading ? "登録中..." : "登録"}
-          </Button>
+          </button>
         </form>
 
-        <div className="text-center">
-          <p className="text-[#3d3d3d] text-sm">
+        <div style={{ marginTop: "2rem" }}>
+          <p className="register-link-text">
             すでにアカウントをお持ちの方は{" "}
-            <Link to="/login" className="text-[#c89456] hover:underline font-medium">
+            <Link to="/login" className="register-link">
               ログイン
             </Link>
           </p>
