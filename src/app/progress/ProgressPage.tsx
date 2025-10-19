@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, type FC } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -16,8 +15,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import {
-  Bar,
   BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -28,27 +27,25 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "../../components/ui/chart";
+import { getUserInfo } from "../../database/userInfo";
 import "./ProgressPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
-import { getUserInfo } from "../../database/userInfo";
 
+// === 型定義 ===
 interface StudyStats {
   totalQuestions: number;
   totalTime: number;
   accuracy: number;
 }
-
 interface DailyActivity {
   date: string;
   questions: number;
 }
-
 interface StudyHistoryItem {
   date: string;
   questions: string[];
 }
-
 interface BadgeItem {
   id: string;
   name: string;
@@ -56,7 +53,99 @@ interface BadgeItem {
   earned: boolean;
 }
 
-export default function ProgressPage() {
+// === ユーティリティ ===
+const formatTime = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hours}h ${mins}m ${secs}s`;
+};
+
+const createDateKey = (d: Date, sep = "") =>
+  `${d.getFullYear()}${sep}${String(d.getMonth() + 1).padStart(2, "0")}${sep}${String(d.getDate()).padStart(2, "0")}`;
+
+// === サブコンポーネント ===
+const StatsCard: FC<{ label: string; value: string; sub: string }> = ({
+  label,
+  value,
+  sub,
+}) => (
+  <div className="progress-stats-card">
+    <div className="progress-stats-label">{label}</div>
+    <div className="progress-stats-value">{value}</div>
+    <div className="progress-stats-sub">{sub}</div>
+  </div>
+);
+
+const ActivityChart: FC<{ data: DailyActivity[] }> = ({ data }) => (
+  <div className="progress-chart-card">
+    <h2 className="progress-chart-title">1日の学習活動</h2>
+    <div className="progress-chart-container">
+      <ChartContainer
+        config={{ questions: { label: "問題数", color: "#3b82f6" } }}
+        style={{ height: "200px", minWidth: "100%" }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: "#6b7280", fontSize: 12 }}
+              tickLine={false}
+            />
+            <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} tickLine={false} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="questions" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+    </div>
+  </div>
+);
+
+const BadgeList: FC<{ badges: BadgeItem[] }> = ({ badges }) => (
+  <div className="progress-chart-card">
+    <h2 className="progress-chart-title">獲得したバッジ</h2>
+    <div className="progress-badges-grid">
+      {badges.map((badge) => (
+        <div key={badge.id} className="progress-badge-item">
+          <div
+            className={`progress-badge-icon ${badge.earned
+                ? "progress-badge-earned"
+                : "progress-badge-locked"
+              }`}
+          >
+            {badge.icon}
+          </div>
+          <div className="progress-badge-name">{badge.name}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const HistoryList: FC<{ history: StudyHistoryItem[] }> = ({ history }) => (
+  <div className="progress-chart-card">
+    <h2 className="progress-chart-title">学習履歴</h2>
+    <div className="progress-history-list">
+      {history.map((item, index) => (
+        <div key={index} className="progress-history-item">
+          <div className="progress-history-date">{item.date}</div>
+          <div className="progress-history-content">
+            {item.questions.map((q, i) => (
+              <div key={i} className="progress-history-question">
+                ・{q}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// === メインコンポーネント ===
+const ProgressPage: FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<StudyStats>({
@@ -68,30 +157,10 @@ export default function ProgressPage() {
   const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([]);
   const [studyHistory, setStudyHistory] = useState<StudyHistoryItem[]>([]);
   const [badges, setBadges] = useState<BadgeItem[]>([
-    {
-      id: "1",
-      name: "初級マスター",
-      icon: <Trophy style={{ width: "2rem", height: "2rem" }} />,
-      earned: false,
-    },
-    {
-      id: "2",
-      name: "連続7日学習",
-      icon: <Flame style={{ width: "2rem", height: "2rem" }} />,
-      earned: false,
-    },
-    {
-      id: "3",
-      name: "歴史博士",
-      icon: <GraduationCap style={{ width: "2rem", height: "2rem" }} />,
-      earned: false,
-    },
-    {
-      id: "4",
-      name: "100問正解",
-      icon: <Target style={{ width: "2rem", height: "2rem" }} />,
-      earned: false,
-    },
+    { id: "1", name: "初級マスター", icon: <Trophy />, earned: false },
+    { id: "2", name: "連続7日学習", icon: <Flame />, earned: false },
+    { id: "3", name: "歴史博士", icon: <GraduationCap />, earned: false },
+    { id: "4", name: "100問正解", icon: <Target />, earned: false },
   ]);
 
   useEffect(() => {
@@ -106,99 +175,63 @@ export default function ProgressPage() {
         const readList = (userData?.readList || {}) as Record<string, string[]>;
         const studyTime = (userData?.studyTime || {}) as Record<string, number>;
 
-        // === 今日の日付キー ===
         const today = new Date();
-        const todayKey = `${today.getFullYear()}${String(
-          today.getMonth() + 1
-        ).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
-        const todayTimeKey = `${today.getFullYear()}-${String(
-          today.getMonth() + 1
-        ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+        const todayKey = createDateKey(today);
+        const todayTimeKey = createDateKey(today, "-");
 
-        // === 今日の学習データ ===
         const todayQuestions = Array.isArray(readList[todayKey])
           ? readList[todayKey].length
           : 0;
         const todayTime = studyTime[todayTimeKey] || 0;
 
-        // === 全体の統計 ===
         const totalQuestions = Object.values(readList).reduce(
           (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
           0
         );
-        const totalTime = Object.values(studyTime).reduce(
-          (sum, t) => sum + t,
-          0
-        );
+        const totalTime = Object.values(studyTime).reduce((sum, t) => sum + t, 0);
 
-        setStats({
-          totalQuestions,
-          totalTime,
-          accuracy: 80, // 仮定
-        });
+        setStats({ totalQuestions, totalTime, accuracy: 80 });
+        setTodayStats({ questions: todayQuestions, time: todayTime });
 
-        setTodayStats({
-          questions: todayQuestions,
-          time: todayTime,
-        });
-
-        // === 直近7日間 ===
         const last7Days = Array.from({ length: 7 }, (_, i) => {
           const d = new Date();
           d.setDate(today.getDate() - (6 - i));
-          const key = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(
-            2,
-            "0"
-          )}${String(d.getDate()).padStart(2, "0")}`;
           return {
-            key,
+            key: createDateKey(d),
             date: `${d.getMonth() + 1}/${d.getDate()}`,
           };
         });
 
-        // === 日次アクティビティ ===
-        const dailyActivityData: DailyActivity[] = last7Days.map(
-          ({ key, date }) => ({
-            date,
-            questions: Array.isArray(readList[key]) ? readList[key].length : 0,
-          })
-        );
+        const dailyActivityData = last7Days.map(({ key, date }) => ({
+          date,
+          questions: Array.isArray(readList[key]) ? readList[key].length : 0,
+        }));
         setDailyActivity(dailyActivityData);
 
-        // === 学習履歴 ===
-        const historyData: StudyHistoryItem[] = Object.entries(readList)
-          .map(([dateKey, questions]) => {
-            const formatted = `${dateKey.slice(0, 4)}/${dateKey.slice(
-              4,
-              6
-            )}/${dateKey.slice(6, 8)}`;
-            return { date: formatted, questions };
-          })
-          .sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
+        const historyData = Object.entries(readList)
+          .map(([dateKey, questions]) => ({
+            date: `${dateKey.slice(0, 4)}/${dateKey.slice(4, 6)}/${dateKey.slice(6, 8)}`,
+            questions,
+          }))
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setStudyHistory(historyData);
 
-        // === バッジ判定 ===
         const consecutiveDays =
           last7Days.filter(({ key }) => readList[key])?.length || 0;
         setBadges((prev) =>
-          prev.map((b) => {
-            if (b.id === "1" && totalQuestions > 0)
-              return { ...b, earned: true };
-            if (b.id === "2" && consecutiveDays >= 7)
-              return { ...b, earned: true };
-            if (b.id === "3" && totalQuestions >= 50)
-              return { ...b, earned: true };
-            if (b.id === "4" && totalQuestions >= 100)
-              return { ...b, earned: true };
-            return b;
-          })
+          prev.map((b) => ({
+            ...b,
+            earned:
+              (b.id === "1" && totalQuestions > 0) ||
+              (b.id === "2" && consecutiveDays >= 7) ||
+              (b.id === "3" && totalQuestions >= 50) ||
+              (b.id === "4" && totalQuestions >= 100),
+          }))
         );
 
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
+      } catch (err) {
+        console.error("Error fetching progress data:", err);
         setLoading(false);
       }
     });
@@ -206,138 +239,44 @@ export default function ProgressPage() {
     return () => unsubscribe();
   }, [navigate]);
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}h ${mins}m ${secs}s`;
-  };
-
-  if (loading) {
+  if (loading)
     return (
       <div className="progress-page flex items-center justify-center">
-        <div style={{ fontSize: "1.125rem", color: "#6b7280" }}>
-          読み込み中...
-        </div>
+        <p className="text-gray-500 text-lg">読み込み中...</p>
       </div>
     );
-  }
 
   return (
     <div className="progress-page">
       <header className="progress-header">
-        <button
-          onClick={() => navigate(-1)}
-          className="button button-ghost button-icon"
-        >
-          <ArrowLeft style={{ width: "1.25rem", height: "1.25rem" }} />
+        <button onClick={() => navigate(-1)} className="button button-ghost button-icon">
+          <ArrowLeft />
         </button>
         <h1 className="progress-header-title">学習の記録</h1>
         <Link to="/settings">
           <button className="button button-ghost button-icon">
-            <Settings style={{ width: "1.25rem", height: "1.25rem" }} />
+            <Settings />
           </button>
         </Link>
       </header>
 
       <div className="progress-content">
-        {/* 統計カード */}
-        <div className="progress-stats-card">
-          <div className="progress-stats-label">学習した雑学（全体）</div>
-          <div className="progress-stats-value">
-            {stats.totalQuestions.toLocaleString()}
-          </div>
-          <div className="progress-stats-sub">
-            今日: {todayStats.questions.toLocaleString()}
-          </div>
-        </div>
+        <StatsCard
+          label="学習した雑学（全体）"
+          value={stats.totalQuestions.toLocaleString()}
+          sub={`今日: ${todayStats.questions.toLocaleString()}`}
+        />
+        <StatsCard
+          label="総学習時間（全体）"
+          value={formatTime(stats.totalTime)}
+          sub={`今日: ${formatTime(todayStats.time)}`}
+        />
 
-        <div className="progress-stats-card">
-          <div className="progress-stats-label">総学習時間（全体）</div>
-          <div className="progress-stats-value">
-            {formatTime(stats.totalTime)}
-          </div>
-          <div className="progress-stats-sub">
-            今日: {formatTime(todayStats.time)}
-          </div>
-        </div>
-
-        {/* 日次アクティビティ */}
-        <div className="progress-chart-card">
-          <h2 className="progress-chart-title">1日の学習活動</h2>
-          <div className="progress-chart-container">
-            <ChartContainer
-              config={{
-                questions: { label: "問題数", color: "#3b82f6" },
-              }}
-              style={{ height: "200px", minWidth: "100%" }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyActivity}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                    tickLine={false}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar
-                    dataKey="questions"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </div>
-
-        {/* バッジ */}
-        <div className="progress-chart-card">
-          <h2 className="progress-chart-title">獲得したバッジ</h2>
-          <div className="progress-badges-grid">
-            {badges.map((badge) => (
-              <div key={badge.id} className="progress-badge-item">
-                <div
-                  className={`progress-badge-icon ${
-                    badge.earned
-                      ? "progress-badge-earned"
-                      : "progress-badge-locked"
-                  }`}
-                >
-                  {badge.icon}
-                </div>
-                <div className="progress-badge-name">{badge.name}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 学習履歴 */}
-        <div className="progress-chart-card">
-          <h2 className="progress-chart-title">学習履歴</h2>
-          <div className="progress-history-list">
-            {studyHistory.map((item, index) => (
-              <div key={index} className="progress-history-item">
-                <div className="progress-history-date">{item.date}</div>
-                <div className="progress-history-content">
-                  {item.questions.map((q, i) => (
-                    <div key={i} className="progress-history-question">
-                      ・{q}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ActivityChart data={dailyActivity} />
+        <BadgeList badges={badges} />
+        <HistoryList history={studyHistory} />
       </div>
 
-      {/* 下ナビ */}
       <nav className="bottom-nav">
         <div className="bottom-nav-content">
           <Link to="/" className="nav-link">
@@ -356,4 +295,6 @@ export default function ProgressPage() {
       </nav>
     </div>
   );
-}
+};
+
+export default ProgressPage;
