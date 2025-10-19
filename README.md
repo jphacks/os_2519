@@ -119,6 +119,7 @@ $$P = [P_1, P_2, \dots, P_{10}]^T \quad \text{s.t.} \quad \sum_{i=1}^{10} P_i = 
 8.  グローバル・地域
 9.  トレンド・現代社会
 10. 知的・哲学
+    
 **2.2. コンテンツ特徴ベクトル ($V$)**
 コンテンツが属するカテゴリを表現する10次元のOne-Hotベクトル。
 **2.3. ユーザアクション ($A$) と重み関数 ($w(A)$)**
@@ -149,26 +150,8 @@ $$P_{provisional} = P_{old} + \alpha \cdot w(A) \cdot V$$
 **Step 2: 非負制約の適用（クリッピング）**
 $$P_{clipped_i} = \max(0, P_{provisional_i}) \quad \text{for } i=1, \dots, 10$$
 **Step 3: 正規化**
-$$P_{new_i} = \frac{P_{clipped_i}}{\sum_{j=1}^{10} P_{clipped_j}}$$ （編集済み） 
+$$P_{new_i} = \frac{P_{clipped_i}}{\sum_{j=1}^{10} P_{clipped_j}}$$
 
 
 
 
-
-
-
-
-
-
-
-os_2519 へのメッセージ
-
-
-
-
-
-
-
-
-
-Return で改行
