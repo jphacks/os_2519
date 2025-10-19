@@ -31,6 +31,7 @@ export async function createOrupdateUserInfo(userId: string, data: {
     email?: string
     preference?: number[]
     readList?: {}
+    newsReadList?:{}
     userName?: string
 }) {
     // ユーザーIDを指定すると、そのユーザーIDに紐づいたユーザー情報を更新、作成する関数
@@ -60,7 +61,6 @@ export async function setInitialUserInfo(userId: string, email: string) {
 
 
 export async function markDialogueAsRead(userId: string, contentId: string) {
-    console.log("yobareta")
     if (!userId) return;
 
     // 1. 既存のユーザー情報を取得
@@ -96,6 +96,46 @@ export async function markDialogueAsRead(userId: string, contentId: string) {
 
     console.log(
         `User ${userId} updated: alreadyRead=${alreadyRead}, readList=${JSON.stringify(readList)}`
+    );
+}
+
+
+export async function markNewsDialogueAsRead(userId: string, contentId: string) {
+    if (!userId) return;
+
+    // 1. 既存のユーザー情報を取得
+    const userData = await getUserInfo(userId);
+
+    // 2. alreadyRead に追加（重複チェック）
+    const alreadyRead: string[] = userData.alreadyRead || [];
+    if (!alreadyRead.includes(contentId)) {
+        alreadyRead.push(contentId);
+    }
+
+    // ✅ 3. 日本時間で今日の日付キーを作成
+    const now = new Date();
+    const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000); // UTC→JST
+    const todayKey = jst.toISOString().slice(0, 10).replace(/-/g, ""); // 例: "20251019"
+
+    // 4. readList を更新
+    const newsReadList = { ...(userData.newsReadList || {}) };
+
+    if (!newsReadList[todayKey]) {
+        newsReadList[todayKey] = [];
+    }
+
+    if (!newsReadList[todayKey].includes(contentId)) {
+        newsReadList[todayKey].push(contentId);
+    }
+
+    // 5. Firestore に更新
+    await createOrupdateUserInfo(userId, {
+        alreadyRead,
+        newsReadList,
+    });
+
+    console.log(
+        `User ${userId} updated: alreadyRead=${alreadyRead}, readList=${JSON.stringify(newsReadList)}`
     );
 }
 
