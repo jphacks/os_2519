@@ -167,8 +167,8 @@ const ProgressPage: FC = () => {
   const [badges, setBadges] = useState<BadgeItem[]>([
     { id: "1", name: "初級マスター", icon: <Trophy />, earned: false },
     { id: "2", name: "連続7日学習", icon: <Flame />, earned: false },
-    { id: "3", name: "歴史博士", icon: <GraduationCap />, earned: false },
-    { id: "4", name: "100問正解", icon: <Target />, earned: false },
+    { id: "3", name: "１時間学習達成", icon: <GraduationCap />, earned: false },
+    { id: "4", name: "100問学習", icon: <Target />, earned: false },
   ]);
 
   useEffect(() => {
@@ -232,8 +232,8 @@ const ProgressPage: FC = () => {
           ...b,
           earned:
             (b.id === "1" && totalQuestions > 0) ||
-            (b.id === "2" && consecutiveDays >= 7) ||
-            (b.id === "3" && totalQuestions >= 50) ||
+            (b.id === "2" && totalTime >= 3600) ||
+            (b.id === "3" && consecutiveDays >= 7) ||
             (b.id === "4" && totalQuestions >= 100),
         }));
 
