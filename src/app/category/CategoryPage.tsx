@@ -36,6 +36,12 @@ const categoryData: Record<string, { name: string; description: string; icon: st
     description: "スポーツの世界の豆知識",
     icon: "🏃",
   },
+    quiz: {
+    name: "クイズ",
+    description: "様々なジャンルのクイズを楽しもう",
+    icon: "❓",
+  },
+
 }
 
 export default function CategoryPage() {

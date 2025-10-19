@@ -78,6 +78,8 @@ export default function HomePage() {
     { id: "グローバル・地域", name: "グローバル・地域", icon: "🌏", color: "#3fa7d6" },
     { id: "トレンド・現代社会", name: "トレンド・現代社会", icon: "📈", color: "#f5a623" },
     { id: "知的・哲学", name: "知的・哲学", icon: "🧠", color: "#6d549f" },
+    { id: "クイズ", name: "クイズ", icon: "❓", color: "#469b49ff" },
+
   ]
 
   const categoryIndexMap: Record<string, number> = {
@@ -119,37 +121,42 @@ export default function HomePage() {
             <div style={{ color: "#6b7280" }}>読み込み中...</div>
           )}
         </section>
-
         <section className="categories-section">
           <h2 className="section-title">カテゴリー</h2>
 
-          <div className="categories-grid">
-            {categories.map((category) => {
-              const n = categoryIndexMap[category.id] ?? -1
-              return (
-                <Link
-                  key={category.id}
-                  to={`/content?category=${n}`}
-                  className="category-card"
-                >
-                  <div
-                    className="category-icon"
-                    style={{ backgroundColor: category.color }}
-                  >
-                    <span className="category-icon-text">{category.icon}</span>
-                  </div>
-                  <span className="category-name">
-                    {category.name.split("・").map((part, i) => (
-                      <span key={i}>
-                        {part}
-                        {i !== category.name.split("・").length - 1 && <br />}
-                      </span>
-                    ))}
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
+<div className="categories-grid">
+  {categories.map((category) => {
+    const n = categoryIndexMap[category.id] ?? -1;
+    
+    // クイズの場合は /quiz へ、それ以外は /content へ
+    const linkTo = category.id === "クイズ" 
+      ? "/quiz" 
+      : `/content?category=${n}`;
+    
+    return (
+      <Link
+        key={category.id}
+        to={linkTo}
+        className="category-card"
+      >
+        <div
+          className="category-icon"
+          style={{ backgroundColor: category.color }}
+        >
+          <span className="category-icon-text">{category.icon}</span>
+        </div>
+        <span className="category-name">
+          {category.name.split("・").map((part, i) => (
+            <span key={i}>
+              {part}
+              {i !== category.name.split("・").length - 1 && <br />}
+            </span>
+          ))}
+        </span>
+      </Link>
+    );
+  })}
+</div>
         </section>
       </div>
 

@@ -225,6 +225,32 @@
   color: #dc2626;
 }
 
+/* ProgressPage.css など */
+.share-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.share-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #fff;
+}
+.share-btn.twitter { background: #1da1f2; }
+.share-btn.facebook { background: #4267b2; }
+.share-btn.linkedin { background: #0a66c2; }
+.share-btn.line { background: #00c300; }
+.share-btn:hover { opacity: 0.85; }
+
+
+
 /* Responsive */
 @media (min-width: 640px) {
   .progress-header-title {

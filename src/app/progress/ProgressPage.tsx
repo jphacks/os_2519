@@ -32,6 +32,8 @@ import "./ProgressPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
 import { getUserInfo } from "../../database/userInfo";
+import { useCallback } from "react";
+import { Linkedin, Twitter, Facebook, MessageCircle } from "lucide-react";
 
 interface StudyStats {
   totalQuestions: number;
@@ -93,6 +95,8 @@ export default function ProgressPage() {
       earned: false,
     },
   ]);
+
+  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -203,6 +207,8 @@ export default function ProgressPage() {
       }
     });
 
+    
+
     return () => unsubscribe();
   }, [navigate]);
 
@@ -213,15 +219,42 @@ export default function ProgressPage() {
     return `${hours}h ${mins}m ${secs}s`;
   };
 
-  if (loading) {
+const handleShare = useCallback(async () => {
+  const text = `📊学習記録
+  ✅${stats.totalQuestions}問学習
+  ⏱️${formatTime(stats.totalTime)}
+  🎯正答率${stats.accuracy}%`;
+    const url = window.location.href;
+
+  // ネイティブシェアが使える場合はそれを優先
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "学習記録", text, url });
+      return null; // 成功時はnullを返す（リンク不要）
+    } catch {
+      // キャンセルや失敗時はフォールバックへ進む
+    }
+  }
+
+  // フォールバック用シェアリンク一覧を返す
+  const encodedText = encodeURIComponent(text);
+  return {
+    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodeURIComponent(url)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodedText}`,
+    linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodedText}`,
+    line: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodedText}`,
+    email: `mailto:?subject=${encodeURIComponent("学習記録")}&body=${encodedText}%0A${encodeURIComponent(url)}`,
+    };
+    }, [stats, formatTime]);
+    if (loading) {
     return (
       <div className="progress-page flex items-center justify-center">
         <div style={{ fontSize: "1.125rem", color: "#6b7280" }}>
           読み込み中...
         </div>
       </div>
-    );
-  }
+      );
+    }
 
   return (
     <div className="progress-page">
@@ -339,6 +372,34 @@ export default function ProgressPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* シェアボタン */}
+      <div className="share-buttons">
+        <button onClick={async () => {
+          const links = await handleShare();
+          if (links?.twitter) window.open(links.twitter, "_blank");
+        }} className="share-btn twitter">
+          <Twitter /> Twitter
+        </button>
+        <button onClick={async () => {
+          const links = await handleShare();
+          if (links?.facebook) window.open(links.facebook, "_blank");
+        }} className="share-btn facebook">
+          <Facebook /> Facebook
+        </button>
+        <button onClick={async () => {
+          const links = await handleShare();
+          if (links?.linkedin) window.open(links.linkedin, "_blank");
+        }} className="share-btn linkedin">
+          <Linkedin /> LinkedIn
+        </button>
+        <button onClick={async () => {
+          const links = await handleShare();
+          if (links?.line) window.open(links.line, "_blank");
+        }} className="share-btn line">
+          <MessageCircle /> LINE
+        </button>
       </div>
 
       {/* 下ナビ */}
