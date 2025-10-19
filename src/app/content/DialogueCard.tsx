@@ -74,7 +74,7 @@ const Avatar = styled.img`
 `;
 
 const MessageBubble = styled.div<{ $isStudent: boolean }>`
-  background-color: ${(p) => (p.$isStudent ? "#f472b6" : "#e0e0e0")};
+  background-color: ${(p) => (p.$isStudent ? "#3ab7f5ff" : "#e0e0e0")};
   color: ${(p) => (p.$isStudent ? "white" : "black")};
   border-radius: 15px;
   padding: 10px 14px;
