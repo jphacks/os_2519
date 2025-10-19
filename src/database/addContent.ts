@@ -1,4 +1,4 @@
-import { createOrupdateContentsInfo } from "./contentsInfo"
+import { createOrupdateNewsContentsInfo } from "./newscontentInfo"
 
 // export async function createOrupdateContentsInfo(contentsId: string, data:{
 //     dialogue?:{
@@ -27,70 +27,65 @@ import { createOrupdateContentsInfo } from "./contentsInfo"
 
 export const addcontents = () => {
     console.log("実行")
-    const text = "パンを「斤」で数える理由"
+    const text = "JPHacks大阪優勝はなんとのアレ、主催者の来年の意向も発表"
 
     const dialogue = [
         {
-            "speaker": "student",
-            "line": "先生、パン屋さんでパンを「一斤ください」って言うけど、なんで「斤」なんて単位で数えるんですか？"
+          "speaker": "student",
+          "line": "先生、JPHACKSってニュースで見たんですけど、どんなイベントなんですか？"
         },
         {
-            "speaker": "teacher",
-            "line": "いい質問だね！それはパンが日本に伝わった明治時代まで遡るんだ。外国の単位が関係しているんだよ。"
+          "speaker": "teacher",
+          "line": "いい質問だね。JPHACKSは、学生がチームを組んで48時間でサービスやアプリを開発する、国内最大級のハッカソンなんだ。"
         },
         {
-            "speaker": "student",
-            "line": "へぇ、外国の単位ですか？"
+          "speaker": "student",
+          "line": "48時間で!? すごいスピードですね！今年はどんな作品が優勝したんですか？"
         },
         {
-            "speaker": "teacher",
-            "line": "そう。当時、イギリス人が売っていたパンの基本サイズは「1ポンド」だったんだ。でも、当時の日本人には『ポンド』って言われてもピンとこないよね。"
+          "speaker": "teacher",
+          "line": "優勝したのは『迷子たこ焼きレーダー改』というアプリだよ。AIとGPSを使って、今いる場所の近くにあるたこ焼き屋台をリアルタイムで案内してくれるんだ。"
         },
         {
-            "speaker": "student",
-            "line": "確かに！今でもポンドってあまり使わないですもんね。"
+          "speaker": "student",
+          "line": "たこ焼きレーダー！？大阪らしくて面白いですね！"
         },
         {
-            "speaker": "teacher",
-            "line": "そこで、日本に昔からあった重さの単位「斤（きん）」を代わりに使ったんだ。1ポンド（約450g）と1斤（約600g）は少し違うけど、一番近い単位だったからね。"
+          "speaker": "teacher",
+          "line": "そうなんだ。審査員からも『大阪の文化と最新技術の融合』って高く評価されたそうだよ。"
         },
         {
-            "speaker": "student",
-            "line": "なるほど！ポンドの代わりに斤って呼ぶことにしたんですね！"
+          "speaker": "student",
+          "line": "会場も盛り上がってたんでしょうね！"
         },
         {
-            "speaker": "teacher",
-            "line": "その通り。でも面白いことに、今の食パンの『1斤』は、そのどちらの重さでもないんだよ。"
+          "speaker": "teacher",
+          "line": "うん、徹夜でコードを書いたり、差し入れのたこ焼きを巡って争奪戦になったり、かなり熱気に包まれていたらしいよ。"
         },
         {
-            "speaker": "student",
-            "line": "え、そうなんですか！？じゃあ、今の1斤は何グラムなんですか？"
+          "speaker": "student",
+          "line": "まさに青春のハッカソンって感じですね！次回もあるんですか？"
         },
         {
-            "speaker": "teacher",
-            "line": "パン業界のルールで「340g以上」と決められているんだ。焼くと水分が飛んで軽くなるから、その分を考えた重さなんだね。"
+          "speaker": "teacher",
+          "line": "主催者は『次回は宇宙人も参加できる国際版を検討中』って冗談交じりに話していたよ。ますますスケールが大きくなりそうだね。"
         },
         {
-            "speaker": "student",
-            "line": "そうだったんだ！じゃあ「斤」は、もう重さの単位じゃなくて、食パンのサイズを表す呼び名みたいなものなんですね！"
-        },
-        {
-            "speaker": "teacher",
-            "line": "大正解！歴史の中で単位の意味が変わってきた、面白い例だね。"
+          "speaker": "student",
+          "line": "宇宙人まで！？楽しみですね！"
         }
-    ]
+      ]
+    const field = [0.2, 0.15, 0.3, 0.0, 0.1, 0.05, 0.0, 0.15, 0.05, 0.0]
 
-    const field = [0.45, 0.05, 0.0, 0.0, 0.0, 0.35, 0.0, 0.1, 0.0, 0.05]
+    const title = "JPHacks大阪優勝はなんとのアレ、主催者の来年の意向も発表"
 
-    const title = "パンはなぜ「斤」で数えるの？"
+    const contentsId = "jphacks"
 
-    const contentsId = "pannokazoekata"
-
-    const source = ""
+    const source = "created by Ko"
 
 
-    const data = { title: title, type: "knowledge", dialogue: dialogue, field: field, text: text, source: source }
+    const data = { title: title, type: "news", dialogue: dialogue, field: field, text: text, source: source }
 
-    createOrupdateContentsInfo(contentsId, data)
+    createOrupdateNewsContentsInfo(contentsId, data)
 }
 

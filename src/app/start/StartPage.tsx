@@ -13,7 +13,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // S3から取得する今日の雑学データ
+  // S3から取得する今日のニュース・雑学データ
+  const [news, setNews] = useState<{
+    id: string
+    title: string
+    description: string
+    image: string
+  } | null>(null)
+
   const [trivia, setTrivia] = useState<{
     id: string
     title: string
@@ -21,16 +28,24 @@ export default function HomePage() {
     image: string
   } | null>(null)
 
+  // ログイン状態の監視
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(!!user)
       setLoading(false)
     })
-
     return () => unsubscribe()
   }, [])
 
-  // 🔽 S3からtoday.jsonを読み取る
+  // 🔽 ニュースの読み込み
+  useEffect(() => {
+    fetch("https://sukimaknowledge.s3.ap-northeast-1.amazonaws.com/news/today.json")
+      .then((res) => res.json())
+      .then((data) => setNews(data))
+      .catch((err) => console.error("Error loading news:", err))
+  }, [])
+
+  // 🔽 雑学の読み込み
   useEffect(() => {
     fetch("https://sukimaknowledge.s3.ap-northeast-1.amazonaws.com/trivia/today.json")
       .then((res) => res.json())
@@ -51,15 +66,9 @@ export default function HomePage() {
       <div className="home-page">
         <div className="home-content">
           <h1 className="home-title">ようこそ</h1>
-
           <div className="home-buttons">
-            <Link to="/login" className="home-button">
-              ログイン
-            </Link>
-
-            <Link to="/register" className="home-button home-button-secondary">
-              新規登録
-            </Link>
+            <Link to="/login" className="home-button">ログイン</Link>
+            <Link to="/register" className="home-button home-button-secondary">新規登録</Link>
           </div>
         </div>
       </div>
@@ -79,7 +88,6 @@ export default function HomePage() {
     { id: "トレンド・現代社会", name: "トレンド・現代社会", icon: "📈", color: "#f5a623" },
     { id: "知的・哲学", name: "知的・哲学", icon: "🧠", color: "#6d549f" },
     { id: "クイズ", name: "クイズ", icon: "❓", color: "#469b49ff" },
-
   ]
 
   const categoryIndexMap: Record<string, number> = {
@@ -103,10 +111,27 @@ export default function HomePage() {
       </header>
 
       <div className="home-scroll-content">
+        {/* ✅ 今日のニュース */}
+        <section className="today-trivia-section">
+          <h2 className="section-title">今日のニュース</h2>
+          {news ? (
+            <div className="trivia-card" onClick={() => navigate(`../newscontent?id=${news.id}`)}>
+              <div className="trivia-image">
+                <img src={news.image} alt={news.title} />
+              </div>
+              <div className="trivia-content">
+                <h3 className="trivia-title">{news.title}</h3>
+                <p className="trivia-description">{news.description}</p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: "#6b7280" }}>読み込み中...</div>
+          )}
+        </section>
+
+        {/* ✅ 今日の雑学 */}
         <section className="today-trivia-section">
           <h2 className="section-title">今日の雑学</h2>
-
-          {/* 🔽 trivia がロードできてから表示 */}
           {trivia ? (
             <div className="trivia-card" onClick={() => navigate(`../content?id=${trivia.id}`)}>
               <div className="trivia-image">
@@ -121,45 +146,35 @@ export default function HomePage() {
             <div style={{ color: "#6b7280" }}>読み込み中...</div>
           )}
         </section>
-        <section className="categories-section">
-          <h2 className="section-title">カテゴリー</h2>
 
-<div className="categories-grid">
-  {categories.map((category) => {
-    const n = categoryIndexMap[category.id] ?? -1;
-    
-    // クイズの場合は /quiz へ、それ以外は /content へ
-    const linkTo = category.id === "クイズ" 
-      ? "/quiz" 
-      : `/content?category=${n}`;
-    
-    return (
-      <Link
-        key={category.id}
-        to={linkTo}
-        className="category-card"
-      >
-        <div
-          className="category-icon"
-          style={{ backgroundColor: category.color }}
-        >
-          <span className="category-icon-text">{category.icon}</span>
-        </div>
-        <span className="category-name">
-          {category.name.split("・").map((part, i) => (
-            <span key={i}>
-              {part}
-              {i !== category.name.split("・").length - 1 && <br />}
-            </span>
-          ))}
-        </span>
-      </Link>
-    );
-  })}
-</div>
+        {/* ✅ カテゴリー一覧 */}
+        <section className="categories-section">
+          <h2 className="section-title">雑学カテゴリー</h2>
+          <div className="categories-grid">
+            {categories.map((category) => {
+              const n = categoryIndexMap[category.id] ?? -1
+              const linkTo = category.id === "クイズ" ? "/quiz" : `/content?category=${n}`
+              return (
+                <Link key={category.id} to={linkTo} className="category-card">
+                  <div className="category-icon" style={{ backgroundColor: category.color }}>
+                    <span className="category-icon-text">{category.icon}</span>
+                  </div>
+                  <span className="category-name">
+                    {category.name.split("・").map((part, i) => (
+                      <span key={i}>
+                        {part}
+                        {i !== category.name.split("・").length - 1 && <br />}
+                      </span>
+                    ))}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
         </section>
       </div>
 
+      {/* ✅ ナビゲーション */}
       <nav className="bottom-nav">
         <div className="bottom-nav-content">
           <Link to="/" className="nav-link nav-link-active">

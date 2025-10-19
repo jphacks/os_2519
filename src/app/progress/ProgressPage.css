@@ -230,7 +230,9 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin: 0 auto;
+  width: auto;
+  justify-content: center;
 }
 .share-btn {
   display: flex;

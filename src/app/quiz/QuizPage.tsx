@@ -15,7 +15,7 @@ type Quiz = {
 export default function QuizPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(null);
-  const [score, setScore] = useState(0);
+  const [_, setScore] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [loading, setLoading] = useState(true);

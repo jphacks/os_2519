@@ -1,0 +1,114 @@
+.content-container {
+  display: flex;                 /* flexレイアウト */
+  flex-direction: column;        /* 縦方向に並べる */
+  align-items: center;           /* 水平方向の中央揃え */
+  justify-content: center;       /* 垂直方向の中央揃え */
+  padding: 0;                 /* p-4 = 1rem (16px相当) */
+  padding-bottom: 60px !important;          /* 追加: 下の余白を拡張したい場合 */
+  height: auto;                  /* 高さを指定したい場合はここで調整 */
+}
+
+.dialogue-swipe-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #fce7f3;
+  padding: 20px;
+  padding-bottom: 40px;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f3f4f6;
+}
+
+/* .dialogue-card-wrapper {
+  background-color: white;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: calc(100vh - 180px);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+} */
+
+.dialogue-card-wrapper.swipe-left {
+  transform: translateX(-400px) rotate(-10deg);
+  opacity: 0;
+}
+
+.dialogue-card-wrapper.swipe-right {
+  transform: translateX(400px) rotate(10deg);
+  opacity: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.action-button {
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.action-button.dislike {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.action-button.dislike:hover {
+  background-color: #fecaca;
+}
+
+.action-button.like {
+  background-color: #d1fae5;
+  color: #059669;
+}
+
+.action-button.like:hover {
+  background-color: #a7f3d0;
+}
+
+@media (max-width: 640px) {
+  .dialogue-card-wrapper {
+    max-width: 100%;
+    height: calc(100vh - 200px);
+  }
+
+  .action-buttons {
+    gap: 16px;
+  }
+
+  .action-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
