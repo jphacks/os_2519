@@ -217,8 +217,7 @@ export default function NewsContentPage() {
 
       {/* 会話カード */}
       <motion.div
-        key={currentDialogueSet.id}
-        animate={controls}
+        className="swipe-overlay"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={(_, info) => {
@@ -228,8 +227,10 @@ export default function NewsContentPage() {
             handleSwipe("left");
           }
         }}
-      >
-        <motion.div key={currentDialogueSet.id} animate={controls}></motion.div>
+      />
+
+      {/* 会話カード（drag をオーバーレイ側で処理するため非ドラッグ化） */}
+      <motion.div key={currentDialogueSet.id} animate={controls}>
         <DialogueCard
           dialogueData={currentDialogueSet}
           onDialogueCompleted={handleDialogueCompleted}
