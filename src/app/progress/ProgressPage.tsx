@@ -143,6 +143,14 @@ const HistoryList: FC<{ history: StudyHistoryItem[] }> = ({ history }) => (
     </div>
   </div>
 );
+// 新しく獲得したバッジを検出するユーティリティ関数
+const compareBadges = (prev: BadgeItem[], current: BadgeItem[]) => {
+  return current.filter((currBadge) => {
+    const prevBadge = prev.find((b) => b.id === currBadge.id);
+    return currBadge.earned && !(prevBadge?.earned);
+  });
+};
+
 
 // === メインコンポーネント ===
 const ProgressPage: FC = () => {
@@ -218,16 +226,44 @@ const ProgressPage: FC = () => {
 
         const consecutiveDays =
           last7Days.filter(({ key }) => readList[key])?.length || 0;
-        setBadges((prev) =>
-          prev.map((b) => ({
-            ...b,
-            earned:
-              (b.id === "1" && totalQuestions > 0) ||
-              (b.id === "2" && consecutiveDays >= 7) ||
-              (b.id === "3" && totalQuestions >= 50) ||
-              (b.id === "4" && totalQuestions >= 100),
-          }))
-        );
+
+        // === バッジ処理ここから ===
+        const updatedBadges = badges.map((b) => ({
+          ...b,
+          earned:
+            (b.id === "1" && totalQuestions > 0) ||
+            (b.id === "2" && consecutiveDays >= 7) ||
+            (b.id === "3" && totalQuestions >= 50) ||
+            (b.id === "4" && totalQuestions >= 100),
+        }));
+
+        // 前回のバッジ情報を localStorage から取得
+        const prevBadgeJSON = localStorage.getItem("prevBadges");
+        const prevBadges: BadgeItem[] = prevBadgeJSON ? JSON.parse(prevBadgeJSON) : [];
+
+        // 新しく獲得したバッジだけを抽出
+        const newEarnedBadges = compareBadges(prevBadges, updatedBadges);
+
+        // 通知（alert）表示
+        if (newEarnedBadges.length > 0) {
+          alert(
+            `🎉 新しいバッジを獲得しました！\n\n${newEarnedBadges
+              .map((b) => `🏅 ${b.name}`)
+              .join("\n")}`
+          );
+        }
+
+        // localStorage に今回のバッジ状態を保存
+        // localStorage に今回のバッジ状態を保存（icon 除外）
+        const badgesToSave = updatedBadges.map(({ id, name, earned }) => ({
+          id,
+          name,
+          earned,
+        }));
+        localStorage.setItem("prevBadges", JSON.stringify(badgesToSave));
+
+        setBadges(updatedBadges);
+        // === バッジ処理ここまで ===
 
         setLoading(false);
       } catch (err) {
@@ -238,6 +274,7 @@ const ProgressPage: FC = () => {
 
     return () => unsubscribe();
   }, [navigate]);
+
 
   if (loading)
     return (
