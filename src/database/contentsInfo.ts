@@ -114,33 +114,35 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 //     return top50
 // }
 
-export async function getRecommendedContents(userId: string, n: number = -1) {//test用に軽量化
+export async function getRecommendedContents(userId: string, n: number = -1) {
     // ① ユーザーデータ取得
     const userData = await getUserInfo(userId)
     if (!userData || !userData.preference || !userData.alreadyRead) {
         console.warn("User data is incomplete")
         return []
     }
+    const epsilon = userData.randomness || 50
 
     const user_preference: number[] = userData.preference
     const alreadyRead: string[] = userData.alreadyRead
 
     // n >= 0 の場合は単一成分ベクトルを使用
     const vectorLength = user_preference.length
-    const targetVector = (n >= 0 && n < vectorLength)
-        ? Array(vectorLength).fill(0).map((_, i) => (i === n ? 1 : 0))
-        : user_preference
+    const targetVector =
+        n >= 0 && n < vectorLength
+            ? Array(vectorLength)
+                .fill(0)
+                .map((_, i) => (i === n ? 1 : 0))
+            : user_preference
 
     // ② Firestoreからランダムに20件取得
     const contentsRef = collection(db, "contents")
-    const snapshot = await getDocs(
-        query(contentsRef, orderBy("title"), limit(20))
-    )
+    const snapshot = await getDocs(query(contentsRef, orderBy("title"), limit(20)))
 
     // ③ 未読のみフィルタ＆類似度計算
     const contents = snapshot.docs
-        .filter(doc => !alreadyRead.includes(doc.id))
-        .map(doc => {
+        .filter((doc) => !alreadyRead.includes(doc.id))
+        .map((doc) => {
             const data = doc.data()
             const similarity = cosineSimilarity(targetVector, data.field)
             return {
@@ -152,10 +154,29 @@ export async function getRecommendedContents(userId: string, n: number = -1) {//
             }
         })
 
-    // ④ 類似度上位5件を返す
-    const top5 = contents
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 5)
+    // ④ 類似度でソート
+    const sortedContents = contents.sort((a, b) => b.similarity - a.similarity)
 
-    return top5
+    // ⑤ ε-greedy法
+    // n >= 0 の場合 → 通常の類似度上位推薦
+    // n == -1 の場合 → ε確率で上位から選び、(1 - ε)確率でランダムに選ぶ
+    let selected: typeof contents = []
+
+    if (n === -1) {
+        if (Math.random()*100 < epsilon) {
+            console.log("上位")
+            // εの確率で上位推薦（探索）
+            selected = sortedContents.slice(0, 5)
+        } else {
+            console.log("下位")
+            // 1 - εの確率でランダム推薦（多様性）
+            const shuffled = [...contents].sort(() => Math.random() - 0.5)
+            selected = shuffled.slice(0, 5)
+        }
+    } else {
+        selected = sortedContents.slice(0, 5)
+    }
+    console.log(selected)
+
+    return selected
 }
