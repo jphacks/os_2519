@@ -38,7 +38,8 @@ interface DialogueSet {
 // ==================== 定数定義 ====================
 
 const ANIMATION_DURATION = 0.4;
-const SWIPE_THRESHOLD = 120;
+// 感度を上げる: 少しのスワイプで反応するように閾値を下げる
+const SWIPE_THRESHOLD = 100;
 const SWIPE_X_OFFSET = 400;
 const SWIPE_ROTATE_DEGREE = 10;
 const HINT_AUTOHIDE_DELAY = 5000;
@@ -48,7 +49,6 @@ const HINT_AUTOHIDE_DELAY = 5000;
 export default function ContentPage() {
   const user = auth.currentUser;
   const uid = user?.uid;
-  if (!uid) return <></>;
 
   const [dialogues, setDialogus] = useState<DialogueSet[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -68,6 +68,7 @@ export default function ContentPage() {
   // ==================== 学習時間記録 ====================
 
   const recordStudyTime = useCallback(async () => {
+    if (!uid) return;
     const endTime = Date.now();
     const elapsedSec = Math.round((endTime - startTimeRef.current) / 1000);
     startTimeRef.current = endTime;
@@ -78,7 +79,7 @@ export default function ContentPage() {
 
   useEffect(() => {
     const getdialogue = async () => {
-      let initialDialogues: DialogueSet[] = [];
+      const initialDialogues: DialogueSet[] = [];
 
       // ① id指定がある場合 → そのコンテンツを最初に追加
       if (idParam) {
@@ -93,8 +94,8 @@ export default function ContentPage() {
         }
       }
 
-      // ② 通常のおすすめを取得
-      const recommended = await getRecommendedContents(uid, n);
+      // ② 通常のおすすめを取得 (uid が無ければ空配列)
+      const recommended = uid ? await getRecommendedContents(uid, n) : [];
 
       // ③ 重複回避して統合
       const merged = [
@@ -141,10 +142,12 @@ export default function ContentPage() {
 
       await recordStudyTime();
 
-      const P_old = await getUserPreference(uid);
-      const V = currentDialogueSet.field;
-      const P_new = updatePreferenceVector(P_old, V, "skip");
-      await createOrupdateUserInfo(uid, { preference: P_new });
+      if (uid) {
+        const P_old = await getUserPreference(uid);
+        const V = currentDialogueSet.field;
+        const P_new = updatePreferenceVector(P_old, V, "skip");
+        await createOrupdateUserInfo(uid, { preference: P_new });
+      }
 
       await controls.start({
         x: isRight ? SWIPE_X_OFFSET : -SWIPE_X_OFFSET,
@@ -159,7 +162,14 @@ export default function ContentPage() {
 
       controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [controls, dialogues.length, showSwipeHint, recordStudyTime, uid, currentDialogueSet]
+    [
+      controls,
+      dialogues.length,
+      showSwipeHint,
+      recordStudyTime,
+      uid,
+      currentDialogueSet,
+    ]
   );
 
   // ==================== 会話完了 ====================
@@ -168,13 +178,17 @@ export default function ContentPage() {
     async (dialogueId: string, rating: number | "skip") => {
       if (!currentDialogueSet) return;
 
-      await markDialogueAsRead(uid, dialogueId);
+      if (uid) {
+        await markDialogueAsRead(uid, dialogueId);
+      }
       await recordStudyTime();
 
-      const P_old = await getUserPreference(uid);
-      const V = currentDialogueSet.field;
-      const P_new = updatePreferenceVector(P_old, V, rating);
-      await createOrupdateUserInfo(uid, { preference: P_new });
+      if (uid) {
+        const P_old = await getUserPreference(uid);
+        const V = currentDialogueSet.field;
+        const P_new = updatePreferenceVector(P_old, V, rating);
+        await createOrupdateUserInfo(uid, { preference: P_new });
+      }
 
       await controls.start({
         x: SWIPE_X_OFFSET,
@@ -218,10 +232,9 @@ export default function ContentPage() {
         </motion.div>
       )}
 
-      {/* 会話カード */}
+      {/* 透明オーバーレイ: フッター以外の全画面でスワイプ判定を取る */}
       <motion.div
-        key={currentDialogueSet.id}
-        animate={controls}
+        className="swipe-overlay"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={(_, info) => {
@@ -231,7 +244,10 @@ export default function ContentPage() {
             handleSwipe("left");
           }
         }}
-      >
+      />
+
+      {/* 会話カード（drag をオーバーレイ側で処理するため非ドラッグ化） */}
+      <motion.div key={currentDialogueSet.id} animate={controls}>
         <DialogueCard
           dialogueData={currentDialogueSet}
           onDialogueCompleted={handleDialogueCompleted}
