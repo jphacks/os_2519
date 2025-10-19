@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react"
 import { getDocs, collection } from "firebase/firestore"
 import { Link } from "react-router-dom";
-import { db } from "../../firebase" // dbはinitialize済みFirestoreインスタンス
+import { db } from "../../firebase"
 import "./QuizPage.css"
 import { Home, TrendingUp, Settings } from "lucide-react";
-
-
 
 type Quiz = {
   id: string;
@@ -14,40 +12,44 @@ type Quiz = {
   incorrect_answers: string[];
 };
 
-const TEST_QUIZZES: Quiz[] = [
-  {
-    id: "q1",
-    question: "日本で一番高い山は？",
-    correct_answer: "富士山",
-    incorrect_answers: ["剣岳", "白山", "立山"],
-  },
-  {
-    id: "q2",
-    question: "ゴッホが描いた有名な絵は？",
-    correct_answer: "ひまわり",
-    incorrect_answers: ["モナリザ", "夜警", "ムンクの叫び"],
-  },
-  {
-    id: "q3",
-    question: "オリンピックの輪の色は？",
-    correct_answer: "5色",
-    incorrect_answers: ["4色", "6色", "3色"],
-  }
-  // 必要なだけ追加
-];
-
-function getRandomQuiz(array: Quiz[]): Quiz | null {
-  if (!array.length) return null;
-  const idx = Math.floor(Math.random() * array.length);
-  return array[idx];
-}
-
 export default function QuizPage() {
-  const [quizzes] = useState(TEST_QUIZZES); // Firestore → 配列へ入れ替え
-  const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(quizzes[0] || null);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(null);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Firestoreからcontentsコレクション取得
+    getDocs(collection(db, "contents"))
+      .then(snapshot => {
+        const fetchedQuizzes: Quiz[] = [];
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          // quizフィールド（マップ）が存在するか確認
+          if (data.quiz && data.quiz.question) {
+            fetchedQuizzes.push({
+              id: doc.id, // ドキュメントIDをクイズIDとして使用
+              question: data.quiz.question,
+              correct_answer: data.quiz.correct_answer,
+              incorrect_answers: data.quiz.incorrect_answers || []
+            });
+          }
+        });
+        setQuizzes(fetchedQuizzes);
+        // 最初のクイズをランダムで選択
+        if (fetchedQuizzes.length > 0) {
+          const randomIdx = Math.floor(Math.random() * fetchedQuizzes.length);
+          setCurrentQuiz(fetchedQuizzes[randomIdx]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Firestore fetch error:", err);
+        setLoading(false);
+      });
+  }, []);
 
   function getRandomQuiz(array: Quiz[], excludeId?: string): Quiz | null {
     const filtered = excludeId ? array.filter(q => q.id !== excludeId) : array;
@@ -69,7 +71,9 @@ export default function QuizPage() {
     setCurrentQuiz(nextQuiz);
   };
 
-  if (!currentQuiz) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!currentQuiz) return <div>クイズが見つかりません</div>;
+
   const options = [currentQuiz.correct_answer, ...currentQuiz.incorrect_answers].sort(() => Math.random() - 0.5);
 
   return (
@@ -108,7 +112,6 @@ export default function QuizPage() {
         </div>
       )}
 
-      {/* 下ナビ */}
       <nav className="bottom-nav">
         <div className="bottom-nav-content">
           <Link to="/" className="nav-link">
@@ -125,7 +128,6 @@ export default function QuizPage() {
           </Link>
         </div>
       </nav>
-
     </div>
   );
 }

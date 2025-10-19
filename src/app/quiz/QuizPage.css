@@ -1,3 +1,5 @@
+/* quiz/QuizPage.css */
+
 .quiz-container {
   max-width: 480px;
   margin: 60px auto;
@@ -8,17 +10,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.quiz-message {
-  text-align: center;
-  margin-top: 100px;
-  font-size: 1.2rem;
-  color: #333;
-}
-
-.quiz-message.error {
-  color: #d63a32;
 }
 
 .quiz-question {
@@ -53,18 +44,16 @@
   border: 1.5px solid #6366f1;
 }
 
-.quiz-score {
-  margin-top: 100px;
-  font-size: 1.35rem;
-  font-weight: bold;
-  color: #10b981;
-  text-align: center;
+.quiz-option.correct {
+  background: #bef8be;
+  border-color: #16a34a;
+  color: #052e16;
 }
 
-.quiz-progress {
-  margin-top: 32px;
-  font-size: 0.95rem;
-  color: #6b7280;
+.quiz-option.selected {
+  background: #fbbf24;
+  border-color: #b45309;
+  color: #78350f;
 }
 
 .quiz-feedback {
@@ -87,43 +76,73 @@
   font-weight: bold;
 }
 
+.explanation-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: #6366f1;
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 1rem;
+  transition: color 0.15s;
+}
+
+.explanation-link:hover {
+  color: #4338ca;
+}
+
 .quiz-next {
-  margin-top: 0px;
+  margin-top: 0;
   display: block;
   min-width: 120px;
   padding: 8px 24px;
   border-radius: 8px;
   border: none;
   background: #6366f1;
-  color: white;
+  color: #fff;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
+  transition: background 0.18s;
 }
+
 .quiz-next:hover {
   background: #4338ca;
 }
 
-.quiz-option.correct {
-  background: #bef8be;
-  border-color: #16a34a;
-  color: #052e16;
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
 }
-.quiz-option.selected {
-  background: #fbbf24;
-  border-color: #b45309;
-  color: #78350f;
+
+.bottom-nav-content {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
 }
-.explanation-link {
-  display: inline-block;
-  margin-top: 4px;
-  margin-left: 8px;
+
+.nav-link {
+  color: #6b7280;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.nav-link-active {
   color: #6366f1;
-  font-weight: bold;
-  text-decoration: underline;
-  font-size: 1em;
-  transition: color 0.15s;
 }
-.explanation-link:hover {
-  color: #4338ca;
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.nav-label {
+  margin-top: 4px;
 }
