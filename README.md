@@ -1,7 +1,8 @@
 # 隙マスター
 
 ## 製品概要
-https://sukima-knowledge.web.app/(スマホ推奨) 
+https://sukima-knowledge.web.app/
+(スマホ推奨) 
 ![メイン](./public/隙マスター広告.png)
 
 ### 背景(製品開発のきっかけ、課題等）
