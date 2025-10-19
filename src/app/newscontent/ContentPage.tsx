@@ -35,7 +35,7 @@ interface DialogueSet {
 // ==================== 定数定義 ====================
 
 const ANIMATION_DURATION = 0.4;
-const SWIPE_THRESHOLD = 120;
+const SWIPE_THRESHOLD = 100;
 const SWIPE_X_OFFSET = 400;
 const SWIPE_ROTATE_DEGREE = 10;
 const HINT_AUTOHIDE_DELAY = 5000;
@@ -229,6 +229,7 @@ export default function NewsContentPage() {
           }
         }}
       >
+        <motion.div key={currentDialogueSet.id} animate={controls}></motion.div>
         <DialogueCard
           dialogueData={currentDialogueSet}
           onDialogueCompleted={handleDialogueCompleted}

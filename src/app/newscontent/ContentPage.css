@@ -20,6 +20,17 @@
   position: relative;
 }
 
+.swipe-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 3.5rem; /* フッターの高さ分だけ下を空ける */
+  z-index: 40; /* カードの上に置きつつ、スターUIより下にするために適度な値 */
+  background: rgba(255, 255, 255, 0); /* 完全透明 */
+  touch-action: pan-y; /* 横スワイプを有効にする（縦スクロールも妨げない） */
+}
+
 .back-button {
   position: absolute;
   top: 20px;

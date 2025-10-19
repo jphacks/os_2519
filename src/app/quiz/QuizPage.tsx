@@ -103,7 +103,7 @@ export default function QuizPage() {
             <span className="incorrect-text">
               不正解<br />
               答え: <span>{currentQuiz.correct_answer}</span><br />
-              <Link to={`/content/${currentQuiz.id}`} className="explanation-link">
+              <Link to={`/content?id=${currentQuiz.id}`} className="explanation-link">
                 学ぶ
               </Link>
             </span>

@@ -141,16 +141,23 @@ export async function getRecommendedContents(userId: string, n: number = -1) {//
     const contents = snapshot.docs
         .filter(doc => !alreadyRead.includes(doc.id))
         .map(doc => {
-            const data = doc.data()
-            const similarity = cosineSimilarity(targetVector, data.field)
+            const data = doc.data();
+
+            // dialogue が存在する場合はコピーして最後に追加
+            const dialogueWithSource = Array.isArray(data.dialogue)
+                ? [...data.dialogue, { speaker: "teacher", line: data.source || "" }]
+                : [{ speaker: "teacher", line: `出典:${data.source} , CC BY-SA 3.0 / 4.0` || "" }];
+
+            const similarity = cosineSimilarity(targetVector, data.field);
+
             return {
                 id: doc.id,
                 title: data.title,
-                dialogue: data.dialogue,
+                dialogue: dialogueWithSource,
                 field: data.field,
                 similarity,
             }
-        })
+        });
 
     // ④ 類似度上位5件を返す
     const top5 = contents

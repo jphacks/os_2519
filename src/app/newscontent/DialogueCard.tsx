@@ -134,8 +134,8 @@ const InstructionText = styled.p`
 
 const getAvatarUrl = (speaker: DialogueLine["speaker"]): string =>
   speaker === "student"
-    ? "https://i.pravatar.cc/50?img=15"
-    : "https://i.pravatar.cc/50?img=5";
+? "https://sukimaknowledge.s3.ap-northeast-1.amazonaws.com/img/student.png"
+: "https://sukimaknowledge.s3.ap-northeast-1.amazonaws.com/img/teacher.png";
 
 /** ==================== コンポーネント ==================== **/
 
