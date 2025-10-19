@@ -303,11 +303,10 @@ export default function ProgressPage() {
             {badges.map((badge) => (
               <div key={badge.id} className="progress-badge-item">
                 <div
-                  className={`progress-badge-icon ${
-                    badge.earned
+                  className={`progress-badge-icon ${badge.earned
                       ? "progress-badge-earned"
                       : "progress-badge-locked"
-                  }`}
+                    }`}
                 >
                   {badge.icon}
                 </div>
@@ -317,7 +316,6 @@ export default function ProgressPage() {
           </div>
         </div>
 
-        {/* 学習履歴 */}
         <div className="progress-chart-card">
           <h2 className="progress-chart-title">学習履歴</h2>
           <div className="progress-history-list">
@@ -327,7 +325,13 @@ export default function ProgressPage() {
                 <div className="progress-history-content">
                   {item.questions.map((q, i) => (
                     <div key={i} className="progress-history-question">
-                      ・{q}
+                      ・
+                      <Link
+                        to={`/content?id=${encodeURIComponent(q)}`} // ← リンク化
+                        className="progress-history-link"
+                      >
+                        {q}
+                      </Link>
                     </div>
                   ))}
                 </div>

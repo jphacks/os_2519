@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { Home, TrendingUp, Settings } from "lucide-react"
@@ -9,8 +9,17 @@ import "./StartPage .css"
 import "../../../src/styles/common.css"
 
 export default function HomePage() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  // S3から取得する今日の雑学データ
+  const [trivia, setTrivia] = useState<{
+    id: string
+    title: string
+    description: string
+    image: string
+  } | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,6 +28,14 @@ export default function HomePage() {
     })
 
     return () => unsubscribe()
+  }, [])
+
+  // 🔽 S3からtoday.jsonを読み取る
+  useEffect(() => {
+    fetch("https://sukimaknowledge.s3.ap-northeast-1.amazonaws.com/trivia/today.json")
+      .then((res) => res.json())
+      .then((data) => setTrivia(data))
+      .catch((err) => console.error("Error loading trivia:", err))
   }, [])
 
   if (loading) {
@@ -64,7 +81,7 @@ export default function HomePage() {
   ]
 
   const categoryIndexMap: Record<string, number> = {
-    "おまかせ": -1, // -1 なら従来の user_preference を使う
+    "おまかせ": -1,
     "歴史": 0,
     "自然科学": 1,
     "テクノロジー": 2,
@@ -87,18 +104,20 @@ export default function HomePage() {
         <section className="today-trivia-section">
           <h2 className="section-title">今日の雑学</h2>
 
-          <div className="trivia-card">
-            <div className="trivia-image">
-              <img src="/sliced-bread-on-table.jpg" alt="パン" />
+          {/* 🔽 trivia がロードできてから表示 */}
+          {trivia ? (
+            <div className="trivia-card" onClick={() => navigate(`../content?id=${trivia.id}`)}>
+              <div className="trivia-image">
+                <img src={trivia.image} alt={trivia.title} />
+              </div>
+              <div className="trivia-content">
+                <h3 className="trivia-title">{trivia.title}</h3>
+                <p className="trivia-description">{trivia.description}</p>
+              </div>
             </div>
-            <div className="trivia-content">
-              <h3 className="trivia-title">パンはなぜ「一斤」で計数するの？</h3>
-              <p className="trivia-description">
-                パンは、その形と製法から「一斤」で計数される。これは、パンがその形のままでは完全な形をしていないことに起因する。
-              </p>
-              <span className="trivia-tag">雑学</span>
-            </div>
-          </div>
+          ) : (
+            <div style={{ color: "#6b7280" }}>読み込み中...</div>
+          )}
         </section>
 
         <section className="categories-section">
