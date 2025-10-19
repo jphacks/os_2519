@@ -89,9 +89,9 @@ export default function SettingsPage() {
 
       <div className="settings-content">
         <div className="settings-card randomness-card">
-          <h2 className="settings-title">ホーム画面のランダム性</h2>
+          <h2 className="settings-title">コンテンツのランダム性</h2>
           <p className="settings-description">
-            表示される雑学のランダム性を調整できます
+            学習するコンテンツのランダム性を調整できます
           </p>
 
           {loading ? (

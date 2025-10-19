@@ -141,18 +141,25 @@ export async function getRecommendedContents(userId: string, n: number = -1) {
 
     // ③ 未読のみフィルタ＆類似度計算
     const contents = snapshot.docs
-        .filter((doc) => !alreadyRead.includes(doc.id))
-        .map((doc) => {
-            const data = doc.data()
-            const similarity = cosineSimilarity(targetVector, data.field)
+        .filter(doc => !alreadyRead.includes(doc.id))
+        .map(doc => {
+            const data = doc.data();
+
+            // dialogue が存在する場合はコピーして最後に追加
+            const dialogueWithSource = Array.isArray(data.dialogue)
+                ? [...data.dialogue, { speaker: "teacher", line: data.source || "" }]
+                : [{ speaker: "teacher", line: `出典:${data.source} , CC BY-SA 3.0 / 4.0` || "" }];
+
+            const similarity = cosineSimilarity(targetVector, data.field);
+
             return {
                 id: doc.id,
                 title: data.title,
-                dialogue: data.dialogue,
+                dialogue: dialogueWithSource,
                 field: data.field,
                 similarity,
             }
-        })
+        });
 
     // ④ 類似度でソート
     const sortedContents = contents.sort((a, b) => b.similarity - a.similarity)

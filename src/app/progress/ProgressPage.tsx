@@ -69,10 +69,10 @@ export default function ProgressPage() {
   const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([]);
   const [studyHistory, setStudyHistory] = useState<StudyHistoryItem[]>([]);
   const [badges, setBadges] = useState<BadgeItem[]>([
-    { id: "1", name: "初級マスター", icon: <Trophy style={{ width: "2rem", height: "2rem" }} />, earned: false },
+    { id: "1", name: "10個制覇", icon: <Trophy style={{ width: "2rem", height: "2rem" }} />, earned: false },
     { id: "2", name: "連続7日学習", icon: <Flame style={{ width: "2rem", height: "2rem" }} />, earned: false },
-    { id: "3", name: "歴史博士", icon: <GraduationCap style={{ width: "2rem", height: "2rem" }} />, earned: false },
-    { id: "4", name: "100問正解", icon: <Target style={{ width: "2rem", height: "2rem" }} />, earned: false },
+    { id: "3", name: "50個制覇", icon: <GraduationCap style={{ width: "2rem", height: "2rem" }} />, earned: false },
+    { id: "4", name: "100個制覇", icon: <Target style={{ width: "2rem", height: "2rem" }} />, earned: false },
   ]);
 
   useEffect(() => {
@@ -131,7 +131,7 @@ export default function ProgressPage() {
         const consecutiveDays = last7Days.filter(({ key }) => readList[key] || newsReadList[key])?.length || 0;
         setBadges((prev) =>
           prev.map((b) => {
-            if (b.id === "1" && totalQuestions > 0) return { ...b, earned: true };
+            if (b.id === "1" && totalQuestions > 10) return { ...b, earned: true };
             if (b.id === "2" && consecutiveDays >= 7) return { ...b, earned: true };
             if (b.id === "3" && totalQuestions >= 50) return { ...b, earned: true };
             if (b.id === "4" && totalQuestions >= 100) return { ...b, earned: true };
