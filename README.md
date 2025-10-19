@@ -5,6 +5,7 @@
 https://sukima-knowledge.web.app/
 (スマホ推奨) 
 ### デモ
+https://github.com/jphacks/os_2519/issues/9#issue-3530054124
 ## 製品概要
 ### 背景(製品開発のきっかけ、課題等）
 ### 開発のきっかけ
