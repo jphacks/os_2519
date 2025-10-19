@@ -97,7 +97,7 @@ export default function HomePage() {
   return (
     <div className="home-main">
       <header className="home-header">
-        <h1 className="home-header-title">雑学</h1>
+        <h1 className="home-header-title">ホーム</h1>
       </header>
 
       <div className="home-scroll-content">
