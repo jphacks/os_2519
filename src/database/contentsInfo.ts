@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase"
 import { getUserInfo } from "./userInfo";
 
@@ -70,9 +70,52 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
     return normA === 0 || normB === 0 ? 0 : dot / (normA * normB)
 }
 
-// --- ユーザー嗜好に基づいて未読コンテンツを推薦 ---
-export async function getRecommendedContents(userId: string) {
-    // ① ユーザーデータを取得
+// export async function getRecommendedContents(userId: string, n: number = -1) {
+//     // ① ユーザーデータを取得
+//     const userData = await getUserInfo(userId)
+//     if (!userData || !userData.preference || !userData.alreadyRead) {
+//         console.warn("User data is incomplete")
+//         return []
+//     }
+
+//     const user_preference: number[] = userData.preference
+//     const alreadyRead: string[] = userData.alreadyRead
+
+//     // n >= 0 の場合は単一成分ベクトルを使用
+//     const vectorLength = user_preference.length
+//     const targetVector = (n >= 0 && n < vectorLength)
+//         ? Array(vectorLength).fill(0).map((_, i) => (i === n ? 1 : 0))
+//         : user_preference // -1 の場合は従来の嗜好ベクトル
+
+//     // ② Firestoreから全コンテンツを取得
+//     const contentsRef = collection(db, "contents")
+//     const snapshot = await getDocs(contentsRef)
+
+//     // ③ 未読のものだけに絞って類似度を計算
+//     const contents = snapshot.docs
+//         .filter(doc => !alreadyRead.includes(doc.id))
+//         .map(doc => {
+//             const data = doc.data()
+//             const similarity = cosineSimilarity(targetVector, data.field)
+//             return {
+//                 id: doc.id,
+//                 title: data.title,
+//                 dialogue: data.dialogue,
+//                 field: data.field,
+//                 similarity,
+//             }
+//         })
+
+//     // ④ 類似度の高い順に並べて上位50件を返す
+//     const top50 = contents
+//         .sort((a, b) => b.similarity - a.similarity)
+//         .slice(0, 50)
+
+//     return top50
+// }
+
+export async function getRecommendedContents(userId: string, n: number = -1) {//test用に軽量化
+    // ① ユーザーデータ取得
     const userData = await getUserInfo(userId)
     if (!userData || !userData.preference || !userData.alreadyRead) {
         console.warn("User data is incomplete")
@@ -82,16 +125,24 @@ export async function getRecommendedContents(userId: string) {
     const user_preference: number[] = userData.preference
     const alreadyRead: string[] = userData.alreadyRead
 
-    // ② Firestoreから全コンテンツを取得
-    const contentsRef = collection(db, "contents")
-    const snapshot = await getDocs(contentsRef)
+    // n >= 0 の場合は単一成分ベクトルを使用
+    const vectorLength = user_preference.length
+    const targetVector = (n >= 0 && n < vectorLength)
+        ? Array(vectorLength).fill(0).map((_, i) => (i === n ? 1 : 0))
+        : user_preference
 
-    // ③ 未読のものだけに絞って類似度を計算
+    // ② Firestoreからランダムに20件取得
+    const contentsRef = collection(db, "contents")
+    const snapshot = await getDocs(
+        query(contentsRef, orderBy("title"), limit(20))
+    )
+
+    // ③ 未読のみフィルタ＆類似度計算
     const contents = snapshot.docs
         .filter(doc => !alreadyRead.includes(doc.id))
         .map(doc => {
             const data = doc.data()
-            const similarity = cosineSimilarity(user_preference, data.field)
+            const similarity = cosineSimilarity(targetVector, data.field)
             return {
                 id: doc.id,
                 title: data.title,
@@ -101,11 +152,10 @@ export async function getRecommendedContents(userId: string) {
             }
         })
 
-    // ④ 類似度の高い順に並べて上位50件を返す
-    const top50 = contents
+    // ④ 類似度上位5件を返す
+    const top5 = contents
         .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 50)
-    console.log(top50)
+        .slice(0, 5)
 
-    return top50
+    return top5
 }

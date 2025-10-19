@@ -29,7 +29,7 @@ export async function getUserInfo(userId: string) {
 export async function createOrupdateUserInfo(userId: string, data: {
     alreadyRead?: string[]
     email?: string
-    prefernce?: number[]
+    preference?: number[]
     readList?: {}
     userName?: string
 }) {
@@ -124,6 +124,63 @@ export async function addDailyStudyTime(uid: string, seconds: number) {
         })
     }
 }
+
+const ALPHA = 0.1; // 学習率（適宜調整）
+const ACTION_WEIGHT: Record<number | "skip", number> = {
+  5: 2.0,
+  4: 1.0,
+  3: 0,
+  2: -1.0,
+  1: -2.0,
+  skip: -1.0,
+};
+
+/**
+ * ユーザ嗜好ベクトルを更新
+ * @param P_old 既存のプロファイルベクトル
+ * @param V コンテンツのOne-Hotベクトル
+ * @param action ユーザアクション（1〜5 または "skip"）
+ * @returns 更新後のプロファイルベクトル
+ */
+export function updatePreferenceVector(
+  P_old: number[],
+  V: number[],
+  action: number | "skip"
+): number[] {
+  const w = ACTION_WEIGHT[action];
+  const P_provisional = P_old.map((p, i) => p + ALPHA * w * V[i]);
+  const P_clipped = P_provisional.map((p) => Math.max(0, p));
+  const sum = P_clipped.reduce((a, b) => a + b, 0);
+  if (sum === 0) {
+    return Array(P_old.length).fill(1 / P_old.length); // 一様分布にリセット
+  }
+  return P_clipped.map((p) => p / sum);
+}
+
+
+export async function getUserPreference(userId: string) {
+    // ユーザーIDを指定すると、そのユーザーIDに紐づいたユーザー情報が返ってくる関数
+    // ex)  useEffect(()=>{
+    //     const getUserdata = async(userId:string)=>{
+    //       const userdata = await getUserInfo(userId)
+    //       console.log(userdata)      
+    //     }
+    //     getUserdata("LBjWSgWKKmyAc5gckvGf")
+    //   },[])
+    // これでuserdataにはオブジェクトが入る
+
+    if (!userId) {
+        return {}
+    }
+    const userRef = doc(db, "users", userId)
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+        return {};
+    }
+    const userData = userDoc.data();
+    return userData.preference
+}
+
 
 // export async function setInitialUserInfo(email:string) {
 //     const userRef = collection(db, "users")

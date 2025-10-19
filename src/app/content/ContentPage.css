@@ -38,7 +38,7 @@
   background-color: #f3f4f6;
 }
 
-.dialogue-card-wrapper {
+/* .dialogue-card-wrapper {
   background-color: white;
   width: 100%;
   max-width: 500px;
@@ -50,7 +50,7 @@
   align-items: stretch;
   height: calc(100vh - 180px);
   transition: transform 0.4s ease, opacity 0.4s ease;
-}
+} */
 
 .dialogue-card-wrapper.swipe-left {
   transform: translateX(-400px) rotate(-10deg);

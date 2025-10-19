@@ -1,14 +1,27 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, useAnimation } from "framer-motion";
 import DialogueCard from "./DialogueCard";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Home, TrendingUp, Settings } from "lucide-react";
 import "./ContentPage.css";
 import "../../../src/styles/common.css";
 import "../../../src/styles/components.css";
-import { addDailyStudyTime, markDialogueAsRead } from "../../database/userInfo"; // ←★時間加算関数を追加
+import {
+  addDailyStudyTime,
+  createOrupdateUserInfo,
+  getUserPreference,
+  markDialogueAsRead,
+  updatePreferenceVector,
+} from "../../database/userInfo";
 import { auth } from "../../firebase";
-import { getRecommendedContents } from "../../database/contentsInfo";
+import {
+  getRecommendedContents,
+  getContentsInfo,
+} from "../../database/contentsInfo";
+
+// ==================== 型定義 ====================
 
 interface DialogueLine {
   speaker: "student" | "teacher";
@@ -19,9 +32,20 @@ interface DialogueSet {
   id: string;
   title: string;
   dialogue: DialogueLine[];
+  field: number[];
 }
 
-export default function ContenPage() {
+// ==================== 定数定義 ====================
+
+const ANIMATION_DURATION = 0.4;
+const SWIPE_THRESHOLD = 120;
+const SWIPE_X_OFFSET = 400;
+const SWIPE_ROTATE_DEGREE = 10;
+const HINT_AUTOHIDE_DELAY = 5000;
+
+// ==================== コンポーネント ====================
+
+export default function ContentPage() {
   const user = auth.currentUser;
   const uid = user?.uid;
   if (!uid) return <></>;
@@ -29,73 +53,184 @@ export default function ContenPage() {
   const [dialogues, setDialogus] = useState<DialogueSet[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const controls = useAnimation();
+  const currentDialogueSet = dialogues[currentIndex];
 
-  // ★ 現在のカードの表示開始時間を記録
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+  const [isFirstRender, setIsFirstRender] = useState(true);
+  const [searchParams] = useSearchParams();
+
+  const categoryIndexStr = searchParams.get("category");
+  const idParam = searchParams.get("id");
+  const n = categoryIndexStr ? parseInt(categoryIndexStr, 10) : -1;
+
   const startTimeRef = useRef<number>(Date.now());
+
+  // ==================== 学習時間記録 ====================
+
+  const recordStudyTime = useCallback(async () => {
+    const endTime = Date.now();
+    const elapsedSec = Math.round((endTime - startTimeRef.current) / 1000);
+    startTimeRef.current = endTime;
+    await addDailyStudyTime(uid, elapsedSec);
+  }, [uid]);
+
+  // ==================== 会話データ取得 ====================
 
   useEffect(() => {
     const getdialogue = async () => {
-      const dialogue: DialogueSet[] = await getRecommendedContents(uid);
-      setDialogus(dialogue);
-      startTimeRef.current = Date.now(); // 初回も記録
+      let initialDialogues: DialogueSet[] = [];
+
+      // ① id指定がある場合 → そのコンテンツを最初に追加
+      if (idParam) {
+        const singleContent = await getContentsInfo(idParam);
+        if (singleContent && singleContent.title) {
+          initialDialogues.push({
+            id: idParam,
+            title: singleContent.title,
+            dialogue: singleContent.dialogue,
+            field: singleContent.field,
+          });
+        }
+      }
+
+      // ② 通常のおすすめを取得
+      const recommended = await getRecommendedContents(uid, n);
+
+      // ③ 重複回避して統合
+      const merged = [
+        ...initialDialogues,
+        ...recommended.filter((r) => r.id !== idParam),
+      ];
+
+      setDialogus(merged);
+      startTimeRef.current = Date.now();
     };
+
     getdialogue();
-  }, [uid]);
 
-  const currentDialogueSet = dialogues[currentIndex];
+    // スワイプヒントを数秒で非表示
+    let timer: NodeJS.Timeout;
+    if (showSwipeHint) {
+      timer = setTimeout(() => setShowSwipeHint(false), HINT_AUTOHIDE_DELAY);
+    }
+    return () => clearTimeout(timer);
+  }, [uid, showSwipeHint, n, idParam]);
 
-// 学習時間を記録
-const recordStudyTime = useCallback(async () => {
-  const endTime = Date.now();
-  const elapsedSec = Math.round((endTime - startTimeRef.current) / 1000);
-  startTimeRef.current = endTime; // 次のカードに備えて更新
+  // ==================== 初回レンダー時の待機 ====================
 
-  await addDailyStudyTime(uid, elapsedSec); // ← ★日別加算
-}, [uid]);
+  useEffect(() => {
+    if (isFirstRender && currentDialogueSet) {
+      const timer = setTimeout(() => setIsFirstRender(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isFirstRender, currentDialogueSet]);
+
+  // ==================== カードスワイプ ====================
 
   const handleSwipe = useCallback(
     async (direction: "left" | "right") => {
+      if (!currentDialogueSet) return;
+
+      if (showSwipeHint) {
+        setShowSwipeHint(false);
+        controls.stop();
+        controls.set({ x: 0, opacity: 1, rotate: 0 });
+      }
+
       const isRight = direction === "right";
 
-      // 現在のカードでの滞在時間を記録
       await recordStudyTime();
 
+      const P_old = await getUserPreference(uid);
+      const V = currentDialogueSet.field;
+      const P_new = updatePreferenceVector(P_old, V, "skip");
+      await createOrupdateUserInfo(uid, { preference: P_new });
+
       await controls.start({
-        x: isRight ? 400 : -400,
+        x: isRight ? SWIPE_X_OFFSET : -SWIPE_X_OFFSET,
         opacity: 0,
-        rotate: isRight ? 10 : -10,
-        transition: { duration: 0.4 },
+        rotate: isRight ? SWIPE_ROTATE_DEGREE : -SWIPE_ROTATE_DEGREE,
+        transition: { duration: ANIMATION_DURATION },
       });
 
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % dialogues.length);
+      setCurrentIndex((prevIndex) =>
+        dialogues.length > 0 ? (prevIndex + 1) % dialogues.length : 0
+      );
+
       controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [controls, dialogues.length, recordStudyTime]
+    [controls, dialogues.length, showSwipeHint, recordStudyTime, uid, currentDialogueSet]
   );
 
+  // ==================== 会話完了 ====================
+
   const handleDialogueCompleted = useCallback(
-    async (dialogueId: string, rating: number) => {
+    async (dialogueId: string, rating: number | "skip") => {
+      if (!currentDialogueSet) return;
+
       await markDialogueAsRead(uid, dialogueId);
-      await recordStudyTime(); // ←★評価後にも時間記録
-      handleSwipe("right");
+      await recordStudyTime();
+
+      const P_old = await getUserPreference(uid);
+      const V = currentDialogueSet.field;
+      const P_new = updatePreferenceVector(P_old, V, rating);
+      await createOrupdateUserInfo(uid, { preference: P_new });
+
+      await controls.start({
+        x: SWIPE_X_OFFSET,
+        opacity: 0,
+        rotate: SWIPE_ROTATE_DEGREE,
+        transition: { duration: ANIMATION_DURATION },
+      });
+
+      setCurrentIndex((prevIndex) =>
+        dialogues.length > 0 ? (prevIndex + 1) % dialogues.length : 0
+      );
+
+      controls.set({ x: 0, opacity: 1, rotate: 0 });
     },
-    [uid, handleSwipe, recordStudyTime]
+    [controls, dialogues.length, recordStudyTime, uid, currentDialogueSet]
   );
+
+  // ==================== レンダリング ====================
 
   if (!currentDialogueSet) return <></>;
 
   return (
     <div className="content-container">
+      {/* スワイプヒント */}
+      {showSwipeHint && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="swipe-hint-overlay"
+          onClick={() => {
+            setShowSwipeHint(false);
+            controls.stop();
+            controls.set({ x: 0, opacity: 1, rotate: 0 });
+          }}
+        >
+          <div className="swipe-hint-content">
+            👈 左右にスワイプしてスキップ 👉
+          </div>
+        </motion.div>
+      )}
+
+      {/* 会話カード */}
       <motion.div
         key={currentDialogueSet.id}
         animate={controls}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={(_, info) => {
-          if (info.offset.x > 120) handleSwipe("right");
-          else if (info.offset.x < -120) handleSwipe("left");
+          if (info.offset.x > SWIPE_THRESHOLD) {
+            handleSwipe("right");
+          } else if (info.offset.x < -SWIPE_THRESHOLD) {
+            handleSwipe("left");
+          }
         }}
-        className="bg-white w-full max-w-md shadow-2xl rounded-3xl p-4 flex flex-col items-stretch h-[calc(100vh-180px)]"
       >
         <DialogueCard
           dialogueData={currentDialogueSet}
@@ -103,6 +238,7 @@ const recordStudyTime = useCallback(async () => {
         />
       </motion.div>
 
+      {/* フッター */}
       <nav className="bottom-nav">
         <div className="bottom-nav-content">
           <Link to="/" className="nav-link">

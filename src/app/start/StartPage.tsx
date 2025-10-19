@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { auth } from "../../firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { Home, TrendingUp, Settings } from "lucide-react"
@@ -9,8 +9,17 @@ import "./StartPage .css"
 import "../../../src/styles/common.css"
 
 export default function HomePage() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  // S3から取得する今日の雑学データ
+  const [trivia, setTrivia] = useState<{
+    id: string
+    title: string
+    description: string
+    image: string
+  } | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,6 +28,14 @@ export default function HomePage() {
     })
 
     return () => unsubscribe()
+  }, [])
+
+  // 🔽 S3からtoday.jsonを読み取る
+  useEffect(() => {
+    fetch("https://sukimaknowledge.s3.ap-northeast-1.amazonaws.com/trivia/today.json")
+      .then((res) => res.json())
+      .then((data) => setTrivia(data))
+      .catch((err) => console.error("Error loading trivia:", err))
   }, [])
 
   if (loading) {
@@ -50,57 +67,92 @@ export default function HomePage() {
   }
 
   const categories = [
-    { id: "history", name: "歴史", icon: "🏛️", color: "#6b8e4e" },
-    { id: "science", name: "科学", icon: "🔬", color: "#4a7c9e" },
-    { id: "art", name: "芸術", icon: "🎨", color: "#d4b896" },
-    { id: "trivia", name: "雑学", icon: "🏛️", color: "#9ca3af" },
-    { id: "food", name: "食べ物", icon: "🍽️", color: "#8b6f47" },
-    { id: "sports", name: "スポーツ", icon: "⚽", color: "#e89b4a" },
-    { id: "quiz", name: "クイズ", icon: "❓", color: "#31324cff" },
+    { id: "おまかせ", name: "おまかせ", icon: "🎲", color: "#f59e0b" },
+    { id: "歴史", name: "歴史", icon: "🏛️", color: "#6b8e4e" },
+    { id: "自然科学", name: "自然・科学", icon: "🔬", color: "#4a7c9e" },
+    { id: "テクノロジー", name: "テクノロジー", icon: "💻", color: "#d4b896" },
+    { id: "アート・エンタメ", name: "アート・エンタメ", icon: "🎨", color: "#9ca3af" },
+    { id: "スポーツ", name: "スポーツ", icon: "⚽", color: "#e89b4a" },
+    { id: "生活・実用", name: "生活・実用", icon: "🛒", color: "#8b6f47" },
+    { id: "サブカル・心理", name: "サブカル・心理", icon: "🎭", color: "#b37bc1" },
+    { id: "グローバル・地域", name: "グローバル・地域", icon: "🌏", color: "#3fa7d6" },
+    { id: "トレンド・現代社会", name: "トレンド・現代社会", icon: "📈", color: "#f5a623" },
+    { id: "知的・哲学", name: "知的・哲学", icon: "🧠", color: "#6d549f" },
+    { id: "クイズ", name: "クイズ", icon: "❓", color: "#469b49ff" },
 
   ]
+
+  const categoryIndexMap: Record<string, number> = {
+    "おまかせ": -1,
+    "歴史": 0,
+    "自然科学": 1,
+    "テクノロジー": 2,
+    "アート・エンタメ": 3,
+    "スポーツ": 4,
+    "生活・実用": 5,
+    "サブカル・心理": 6,
+    "グローバル・地域": 7,
+    "トレンド・現代社会": 8,
+    "知的・哲学": 9,
+  }
 
   return (
     <div className="home-main">
       <header className="home-header">
-        <h1 className="home-header-title">雑学</h1>
+        <h1 className="home-header-title">ホーム</h1>
       </header>
 
       <div className="home-scroll-content">
         <section className="today-trivia-section">
           <h2 className="section-title">今日の雑学</h2>
-          <Link to="/content" className="trivia-card-link">
-            <div className="trivia-card">
+
+          {/* 🔽 trivia がロードできてから表示 */}
+          {trivia ? (
+            <div className="trivia-card" onClick={() => navigate(`../content?id=${trivia.id}`)}>
               <div className="trivia-image">
-                <img src="/パン.png?url" alt="パン"  />
+                <img src={trivia.image} alt={trivia.title} />
               </div>
               <div className="trivia-content">
-                <h3 className="trivia-title">パンはなぜ「一斤」で計数するの？</h3>
-                <p className="trivia-description">
-                  パンは、その形と製法から「一斤」で計数される。これは、パンがその形のままでは完全な形をしていないことに起因する。
-                </p>
-                <span className="trivia-tag">雑学</span>
+                <h3 className="trivia-title">{trivia.title}</h3>
+                <p className="trivia-description">{trivia.description}</p>
               </div>
             </div>
-          </Link>
+          ) : (
+            <div style={{ color: "#6b7280" }}>読み込み中...</div>
+          )}
         </section>
         <section className="categories-section">
           <h2 className="section-title">カテゴリー</h2>
 
-         <div className="categories-grid">
+<div className="categories-grid">
   {categories.map((category) => {
-    // triviaカテゴリーだけto="/quiz"、それ以外はto="/content"
-    const toLink = category.id === "quiz" ? "/quiz" : "/content";
+    const n = categoryIndexMap[category.id] ?? -1;
+    
+    // クイズの場合は /quiz へ、それ以外は /content へ
+    const linkTo = category.id === "クイズ" 
+      ? "/quiz" 
+      : `/content?category=${n}`;
+    
     return (
       <Link
         key={category.id}
-        to={toLink}
+        to={linkTo}
         className="category-card"
       >
-        <div className="category-icon" style={{ backgroundColor: category.color }}>
+        <div
+          className="category-icon"
+          style={{ backgroundColor: category.color }}
+        >
           <span className="category-icon-text">{category.icon}</span>
         </div>
-        <span className="category-name">{category.name}</span>
+        <span className="category-name">
+          {category.name.split("・").map((part, i) => (
+            <span key={i}>
+              {part}
+              {i !== category.name.split("・").length - 1 && <br />}
+            </span>
+          ))}
+        </span>
       </Link>
     );
   })}

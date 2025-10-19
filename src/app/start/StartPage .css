@@ -195,10 +195,16 @@
 }
 
 .category-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #1f2937;
+  color: black;
+  font-size: 0.75rem; /* 文字だけ小さくする */
+  text-align: center;
+  white-space: nowrap; /* 改行させない */
+  overflow: hidden;    /* はみ出た部分を隠す */
+  text-overflow: ellipsis; /* 長すぎる場合は "…" */
+  display: block;
 }
+
+
 
 /* Responsive Design */
 @media (min-width: 640px) {
